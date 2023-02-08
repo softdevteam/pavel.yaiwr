@@ -1,7 +1,18 @@
 # pavel.yaiwr
 
-Yet Another Interpreter Writen In Rust
+Yet Another Interpreter Witten In Rust
 
+
+# TODOs
+[x] Go through calc example in the quick start guide
+
+[ ] Implement print statement based on grmtools
+
+[ ] Implement a testing framework
+
+[ ] Benchmarking
+
+[ ] Revise Rust in general :)
 
 # Resources
 
