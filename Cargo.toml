@@ -1,0 +1,19 @@
+[package]
+name = "yaiwr"
+version = "0.0.1"
+authors = ["Pavel Durov"]
+edition = "2021"
+
+[[bin]]
+doc = false
+name = "yaiwr"
+
+[build-dependencies]
+cfgrammar = "0.13"
+lrlex = "0.13"
+lrpar = "0.13"
+
+[dependencies]
+cfgrammar = "0.13"
+lrlex = "0.13"
+lrpar = "0.13"
