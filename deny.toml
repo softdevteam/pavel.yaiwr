@@ -1,0 +1,6 @@
+[licenses]
+unlicensed = "deny"
+confidence-threshold = 1.0
+allow = [
+    "MIT"
+]
