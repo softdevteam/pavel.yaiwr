@@ -16,11 +16,13 @@ $ run_docker_ci_job # optional (--prune)
 ```
 
 # TODOs
-[x] Go through calc example in the quick start guide
+[x] Go through the calc example in the quick start guide
+
+[x] Implement a testing framework
+
+[ ] Add support for custom error handling, i.e InterpError.
 
 [ ] Implement print statement based on grmtools
-
-[ ] Implement a testing framework
 
 [ ] Benchmarking
 
