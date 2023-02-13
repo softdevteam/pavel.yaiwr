@@ -1,8 +1,19 @@
 [package]
-name = "bors"
-version = "0.1.0"
+name = "yaiwr"
+version = "0.0.1"
+authors = ["Pavel Durov"]
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+doc = false
+name = "yaiwr"
+
+[build-dependencies]
+cfgrammar = "0.13"
+lrlex = "0.13"
+lrpar = "0.13"
 
 [dependencies]
+cfgrammar = "0.13"
+lrlex = "0.13"
+lrpar = "0.13"
