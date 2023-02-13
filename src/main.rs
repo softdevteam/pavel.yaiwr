@@ -2,6 +2,7 @@ use std::io::{self, BufRead, Write};
 
 use lrlex::lrlex_mod;
 use lrpar::lrpar_mod;
+use yaiwr::eval;
 
 // Using `lrlex_mod!` brings the lexer for `calc.l` into scope. By default the
 // module name will be `calc_l` (i.e. the file name, minus any extensions,
@@ -24,28 +25,13 @@ fn main() {
                 if l.trim().is_empty() {
                     continue;
                 }
-                // Now we create a lexer with the `lexer` method with which
-                // we can lex an input.
-                let lexer = lexerdef.lexer(l);
-                // Pass the lexer to the parser and lex and parse the input.
-                let (res, errs) = calc_y::parse(&lexer);
-                for e in errs {
-                    println!("{}", e.pp(&lexer, &calc_y::token_epp));
-                }
-                match res {
-                    Some(Ok(r)) => println!("Result: {:?}", r),
-                    _ => eprintln!("Unable to evaluate expression."),
+                let msg = eval(&lexerdef, l);
+                match msg {
+                    Ok(r) => println!("Result: {:?}", r),
+                    Err(msg) => eprintln!("{}", msg),
                 }
             }
             _ => break,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn dummy() {
-        assert_eq!(2 + 2, 4);
     }
 }
