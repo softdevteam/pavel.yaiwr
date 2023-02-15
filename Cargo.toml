@@ -10,10 +10,10 @@ name = "yaiwr"
 
 [build-dependencies]
 cfgrammar = "0.13"
-lrlex = "0.13"
-lrpar = "0.13"
+lrlex = "0.13.1"
+lrpar = "0.13.1"
 
 [dependencies]
 cfgrammar = "0.13"
-lrlex = "0.13"
-lrpar = "0.13"
+lrlex = "0.13.1"
+lrpar = "0.13.1"

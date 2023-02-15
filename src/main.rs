@@ -2,6 +2,7 @@ use std::io::{self, BufRead, Write};
 
 use lrlex::lrlex_mod;
 use lrpar::lrpar_mod;
+
 use yaiwr::eval;
 
 // Using `lrlex_mod!` brings the lexer for `calc.l` into scope. By default the
