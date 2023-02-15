@@ -10,6 +10,6 @@ mod tests {
     #[test]
     fn eval_mul_exp() {
         let lexerdef = calc_l::lexerdef();
-        assert_eq!(eval(&lexerdef, "2*2"), Ok("Result: 4".into()));
+        assert_eq!(eval(&lexerdef, "2*2"), Ok("4".into()));
     }
 }
