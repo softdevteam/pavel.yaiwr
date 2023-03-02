@@ -1,91 +1,62 @@
-use cfgrammar::RIdx;
-use lrlex::{lrlex_mod, DefaultLexeme, DefaultLexerTypes, LRNonStreamingLexerDef};
-use lrpar::{lrpar_mod, Lexeme, Node};
+use lrlex::{lrlex_mod, DefaultLexerTypes};
+use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 
 lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
 
-pub fn eval(
-    lexerdef: &LRNonStreamingLexerDef<DefaultLexerTypes>,
-    input: &str,
-) -> Result<String, String> {
-    let lexer = lexerdef.lexer(input);
-    let (res, errs) = calc_y::parse(&lexer);
-    for e in errs {
-        println!("{}", e.pp(&lexer, &calc_y::token_epp));
-    }
-    match res {
-        Some(x) => {
-            return Ok(format!("{}", Eval::new(input).eval(&x)));
+mod ast;
+
+use ast::Opcode;
+
+pub struct Calc {}
+
+impl Calc {
+    pub fn from_str(input: &str) -> Result<Vec<Opcode>, String> {
+        let lexer_def = calc_l::lexerdef();
+        let lexer = lexer_def.lexer(input);
+        let (ast_exp, errs) = calc_y::parse(&lexer);
+
+        let err_msg = Self::get_parse_err(&lexer, errs);
+        if err_msg.is_empty() == false {
+            return Err(err_msg);
         }
-        _ => Err(String::from("Unable to evaluate expression.")),
-    }
-}
 
-struct Eval<'a> {
-    s: &'a str,
-}
-
-// stolen from: https://github.dev/softdevteam/grmtools
-impl<'a> Eval<'a> {
-    fn new(s: &'a str) -> Self {
-        return Eval { s };
-    }
-
-    fn eval_r_exp(&self, nodes: &Vec<Node<DefaultLexeme, u32>>) -> i64 {
-        if nodes.len() == 1 {
-            return self.eval(&nodes[0]);
-        } else {
-            debug_assert_eq!(nodes.len(), 3);
-            return self.eval(&nodes[0]) + self.eval(&nodes[2]);
+        match ast_exp {
+            Some(res) => match res {
+                Ok(exp) => Ok(exp),
+                Err(_) => Err(err_msg),
+            },
+            None => Err(err_msg),
         }
     }
 
-    fn eval_r_term(&self, nodes: &Vec<Node<DefaultLexeme, u32>>) -> i64 {
-        if nodes.len() == 1 {
-            return self.eval(&nodes[0]);
-        } else {
-            debug_assert_eq!(nodes.len(), 3);
-            return self.eval(&nodes[0]) * self.eval(&nodes[2]);
+    pub fn eval(opcodes: Vec<Opcode>) -> Result<u64, String> {
+        for opcode in opcodes {
+            return Self::eval_exp(opcode);
+        }
+        return Err(String::from("Couldn't evaluate given opcodes."));
+    }
+
+    fn eval_exp(exp: Opcode) -> Result<u64, String> {
+        match exp {
+            Opcode::Add { lhs, rhs } => Self::eval_exp(*lhs)?
+                .checked_add(Self::eval_exp(*rhs)?)
+                .ok_or("overflowed".to_string()),
+            Opcode::Mul { lhs, rhs } => Self::eval_exp(*lhs)?
+                .checked_mul(Self::eval_exp(*rhs)?)
+                .ok_or("overflowed".to_string()),
+            Opcode::Number { value } => Ok(value),
         }
     }
 
-    fn eval_r_factor(&self, nodes: &Vec<Node<DefaultLexeme, u32>>) -> i64 {
-        if nodes.len() == 1 {
-            if let Node::Term { lexeme } = nodes[0] {
-                self.s[lexeme.span().start()..lexeme.span().end()]
-                    .parse()
-                    .unwrap()
-            } else {
-                unreachable!();
-            }
-        } else {
-            debug_assert_eq!(nodes.len(), 3);
-            self.eval(&nodes[1])
-        }
-    }
-
-    fn eval(&self, n: &Node<DefaultLexeme<u32>, u32>) -> i64 {
-        match *n {
-            Node::Nonterm {
-                ridx: RIdx(ridx),
-                ref nodes,
-            } if ridx == calc_y::R_EXPR => {
-                return self.eval_r_exp(nodes);
-            }
-            Node::Nonterm {
-                ridx: RIdx(ridx),
-                ref nodes,
-            } if ridx == calc_y::R_TERM => {
-                return self.eval_r_term(nodes);
-            }
-            Node::Nonterm {
-                ridx: RIdx(ridx),
-                ref nodes,
-            } if ridx == calc_y::R_FACTOR => {
-                return self.eval_r_factor(nodes);
-            }
-            _ => unreachable!(),
-        }
+    fn get_parse_err(
+        lexer: &dyn NonStreamingLexer<DefaultLexerTypes>,
+        errs: Vec<LexParseError<u32, DefaultLexerTypes>>,
+    ) -> String {
+        let msgs = errs
+            .iter()
+            .map(|e| e.pp(lexer, &calc_y::token_epp))
+            .collect::<Vec<String>>();
+        return msgs.join("\n");
     }
 }
