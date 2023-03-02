@@ -1,15 +1,16 @@
 #[cfg(test)]
 mod tests {
-    use lrlex::lrlex_mod;
-    use lrpar::lrpar_mod;
-    use yaiwr::eval;
-
-    lrlex_mod!("calc.l");
-    lrpar_mod!("calc.y");
+    use yaiwr::Calc;
 
     #[test]
-    fn eval_mul_exp() {
-        let lexerdef = calc_l::lexerdef();
-        assert_eq!(eval(&lexerdef, "2*2"), Ok("4".into()));
+    fn eval_mul_expression() {
+        let ast = Calc::from_str("2*2").unwrap();
+        assert_eq!(Calc::eval(ast), Ok(4));
+    }
+
+    #[test]
+    fn eval_mul_expressions() {
+        let ast = Calc::from_str("2*2*2").unwrap();
+        assert_eq!(Calc::eval(ast), Ok(8));
     }
 }

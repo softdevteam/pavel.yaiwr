@@ -27,13 +27,21 @@ $ run_docker_ci_job # optional (--prune)
 
 [ ] Use actions to make an AST on the fly (see e.g. https://github.com/ltratt/pizauth/blob/master/src/config.y)
 
-[ ] Split between "compile an AST to Vec<Opcode> and then have an evaluator which takes Vec<Opcode> and executes the program"
+[x] Split between "compile an AST to Vec<Opcode> and then have an evaluator which takes Vec<Opcode> and executes the program"
 
 [ ] Add variable declaration and out-of-parsing-time computation
 
 [ ] Benchmarking
 
 [ ] Revise Rust in general :)
+
+# Terminology
+
+**Parse Tree** - includes all the "useless" syntactic information that humans like/need but doesn't affect compilation
+
+**AST** - strip out that useless syntactic stuff
+
+**Evaluator** - evaluates something (parse tree, AST, or opcodes) directly; a "compiler" converts one thing into another
 
 # Resources
 

@@ -1,35 +1,23 @@
-use std::io::{self, BufRead, Write};
-
-use lrlex::lrlex_mod;
-use lrpar::lrpar_mod;
-
-use yaiwr::eval;
-
-// Using `lrlex_mod!` brings the lexer for `calc.l` into scope. By default the
-// module name will be `calc_l` (i.e. the file name, minus any extensions,
-// with a suffix of `_l`).
-lrlex_mod!("calc.l");
-// Using `lrpar_mod!` brings the parser for `calc.y` into scope. By default the
-// module name will be `calc_y` (i.e. the file name, minus any extensions,
-// with a suffix of `_y`).
-lrpar_mod!("calc.y");
+use std::io::{self, stdout, BufRead, Write};
+use yaiwr::Calc;
 
 fn main() {
-    // Get the `LexerDef` for the `calc` language.
-    let lexerdef = calc_l::lexerdef();
     let stdin = io::stdin();
     loop {
         print!("👉 ");
-        io::stdout().flush().ok();
+        stdout().flush().ok();
         match stdin.lock().lines().next() {
             Some(Ok(ref l)) => {
                 if l.trim().is_empty() {
                     continue;
                 }
-                let msg = eval(&lexerdef, l);
-                match msg {
-                    Ok(r) => println!("Result: {:?}", r),
-                    Err(msg) => eprintln!("{}", msg),
+                let ast = Calc::from_str(l);
+                match ast {
+                    Ok(opcode) => match Calc::eval(opcode) {
+                        Ok(i) => println!("Result: {}", i),
+                        Err(msg) => eprintln!("Evaluation error: {}", msg),
+                    },
+                    Err(msg) => eprintln!("Evaluation error: {}", msg),
                 }
             }
             _ => break,
