@@ -6,6 +6,23 @@ Yet Another Interpreter Witten In Rust
 
 [Buildbot](https://ci.soft-dev.org/#/builders/1)
 
+## Usage
+
+### Repl
+
+```shell
+$ cargo run 
+👉 2+1 
+Result: 3
+👉 ...
+```
+
+### Cli param
+```shell
+$ cargo run -- 2+2+3
+Result: 7
+```
+
 ## Tests
 
 ```shell
