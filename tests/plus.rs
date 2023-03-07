@@ -4,12 +4,16 @@ mod tests {
     #[test]
     fn eval_plus_expression() {
         let ast = Calc::from_str("2+2").unwrap();
-        assert_eq!(Calc::eval(ast), Ok(4));
+        let bytecode = &mut vec![];
+        Calc::to_bytecode(ast, bytecode);
+        assert_eq!(Calc::eval(bytecode), Ok(4));
     }
 
     #[test]
     fn eval_plus_expressions() {
         let ast = Calc::from_str("2+2+2").unwrap();
-        assert_eq!(Calc::eval(ast), Ok(6));
+        let bytecode = &mut vec![];
+        Calc::to_bytecode(ast, bytecode);
+        assert_eq!(Calc::eval(bytecode), Ok(6));
     }
 }
