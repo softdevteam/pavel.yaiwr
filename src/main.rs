@@ -6,7 +6,6 @@ use yaiwr::Calc;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-
     if args.len() > 1 {
         eval_print(&args[1]);
     } else {
@@ -30,10 +29,14 @@ fn main() {
 fn eval_print(input: &str) {
     let ast = Calc::from_str(input);
     match ast {
-        Ok(opcode) => match Calc::eval(opcode) {
-            Ok(i) => println!("Result: {}", i),
-            Err(msg) => eprintln!("Evaluation error: {}", msg),
-        },
+        Ok(ast_node) => {
+            let bytecode = &mut vec![];
+            Calc::to_bytecode(ast_node, bytecode);
+            match Calc::eval(bytecode) {
+                Ok(i) => println!("Result: {}", i),
+                Err(msg) => eprintln!("Evaluation error: {}", msg),
+            }
+        }
         Err(msg) => eprintln!("Evaluation error: {}", msg),
     }
 }

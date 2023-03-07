@@ -1,16 +1,11 @@
-%start Opcodes
+%start AstNode
 %avoid_insert "INT"
 %expect-unused Unmatched "UNMATCHED"
 %%
 
-Opcodes -> Result<Vec<Opcode>, ()>:
-    Opcodes Opcode { flattenr($1, $2) }
-  | { Ok(vec![]) }
-  ;
-
-Opcode -> Result<Opcode, ()>:
-      Opcode '+' Term {
-        Ok(Opcode::Add{ 
+AstNode -> Result<AstNode, ()>:
+      AstNode '+' Term {
+        Ok(AstNode::Add{ 
           lhs: Box::new($1?), 
           rhs: Box::new($3?) 
         })
@@ -18,9 +13,9 @@ Opcode -> Result<Opcode, ()>:
     | Term { $1 }
     ;
 
-Term -> Result<Opcode, ()>:
+Term -> Result<AstNode, ()>:
       Term '*' Factor {
-        Ok(Opcode::Mul{  
+        Ok(AstNode::Mul{  
           lhs: Box::new($1?), 
           rhs: Box::new($3?) 
         })
@@ -28,14 +23,14 @@ Term -> Result<Opcode, ()>:
     | Factor { $1 }
     ;
 
-Factor -> Result<Opcode, ()>:
-      '(' Opcode ')' { $2 }
+Factor -> Result<AstNode, ()>:
+      '(' AstNode ')' { $2 }
     | 'INT' { 
         match $1.map_err(|err| format!("Parsing Error: {}", err)) {
             Ok(s) => {
               let s = $lexer.span_str(s.span());
               match s.parse::<u64>() {
-                  Ok(n_val) => Ok(Opcode::Number{ value: n_val }),
+                  Ok(n_val) => Ok(AstNode::Number{ value: n_val }),
                   Err(_) => Err(())
               }
             }
@@ -47,11 +42,4 @@ Factor -> Result<Opcode, ()>:
 Unmatched -> ():
       "UNMATCHED" { };
 %%
-use crate::ast::Opcode;
-
-/// Flatten `rhs` into `lhs`.
-fn flattenr<T>(lhs: Result<Vec<T>, ()>, rhs: Result<T, ()>) -> Result<Vec<T>, ()> {
-    let mut flt = lhs?;
-    flt.push(rhs?);
-    Ok(flt)
-}
+use crate::ast::AstNode;

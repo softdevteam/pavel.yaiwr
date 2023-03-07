@@ -38,13 +38,15 @@ $ run_docker_ci_job # optional (--prune)
 
 [x] Implement a testing framework
 
+[x] Split between "compile an AST to Vec<Opcode> and then have an evaluator which takes Vec<Opcode> and executes the program"
+
+[x] Implement stack-based VM
+
 [ ] Add support for custom error handling, i.e InterpError
 
 [ ] Implement print statement based on grmtools
 
 [ ] Use actions to make an AST on the fly (see e.g. https://github.com/ltratt/pizauth/blob/master/src/config.y)
-
-[x] Split between "compile an AST to Vec<Opcode> and then have an evaluator which takes Vec<Opcode> and executes the program"
 
 [ ] Add variable declaration and out-of-parsing-time computation
 
@@ -60,7 +62,12 @@ $ run_docker_ci_job # optional (--prune)
 
 **Evaluator** - evaluates something (parse tree, AST, or opcodes) directly; a "compiler" converts one thing into another
 
+**Stack-based machines** - Stack for operands and operators, the result is always on top of the stack
+
+
 # Resources
+
+[Building a Virtual Machine [2/29]: Stack vs. Register VM](https://www.youtube.com/watch?v=7hrLD4z8eUA&ab_channel=DmitrySoshnikov)
 
 [Which Parsing Approach?](https://tratt.net/laurie/blog/2020/which_parsing_approach.html)
 
