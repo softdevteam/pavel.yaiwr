@@ -1,8 +1,10 @@
 %%
-[0-9]+ "INT"
-\+ "+"
-\* "*"
+[0-9]+ "INTEGER"
+\+ "ADD"
+\* "MUL"
 \( "("
 \) ")"
-[\t ]+ ;
+; ";"
+println "PRINT_LN" 
+[\t\n ]+ ;
 . "UNMATCHED"

@@ -13,14 +13,19 @@ Yet Another Interpreter Witten In Rust
 ```shell
 $ cargo run 
 👉 2+1 
-Result: 3
-👉 ...
+3
 ```
 
-### Cli param
+### Cli args
 ```shell
-$ cargo run -- 2+2+3
-Result: 7
+$ cargo run 'println(2+2+3)'
+7
+```
+
+### File
+```shell
+$ cargo run ./programs/print.yaiwr
+4
 ```
 
 ### Logs
@@ -52,9 +57,11 @@ $ run_docker_ci_job # optional (--prune)
 
 [x] Implement stack-based VM
 
-[ ] Add support for custom error handling, i.e InterpError
+[x] Implement print statement
 
-[ ] Implement print statement based on grmtools
+[ ] Propogate all errors to top-level where the error is printed
+
+[ ] Add support for custom error handling, i.e InterpError
 
 [ ] Use actions to make an AST on the fly (see e.g. https://github.com/ltratt/pizauth/blob/master/src/config.y)
 

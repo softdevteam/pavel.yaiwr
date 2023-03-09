@@ -1,31 +1,22 @@
-%start AstNode
-%avoid_insert "INT"
+%start Expr
+%avoid_insert "INTEGER"
 %expect-unused Unmatched "UNMATCHED"
 %%
 
-AstNode -> Result<AstNode, ()>:
-      AstNode '+' Term {
-        Ok(AstNode::Add{ 
-          lhs: Box::new($1?), 
-          rhs: Box::new($3?) 
-        })
-      }
-    | Term { $1 }
+Expr -> Result<AstNode, ()>:
+    Expr "ADD" Term { Ok(AstNode::Add{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
+    | Term { $1 } 
+    |  "PRINT_LN" "(" Expr ")" { Ok(AstNode::PrintLn{ rhs: Box::new($3?) }) }
     ;
 
 Term -> Result<AstNode, ()>:
-      Term '*' Factor {
-        Ok(AstNode::Mul{  
-          lhs: Box::new($1?), 
-          rhs: Box::new($3?) 
-        })
-      }
+      Term 'MUL' Factor { Ok(AstNode::Mul{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
     | Factor { $1 }
     ;
 
 Factor -> Result<AstNode, ()>:
-      '(' AstNode ')' { $2 }
-    | 'INT' { 
+    "(" Expr ")" { $2 }
+    | "INTEGER" { 
         match $1.map_err(|err| format!("Parsing Error: {}", err)) {
             Ok(s) => {
               let s = $lexer.span_str(s.span());

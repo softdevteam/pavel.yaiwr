@@ -1,3 +1,5 @@
+mod print;
+
 #[cfg(test)]
 mod tests {
     use yaiwr::Calc;

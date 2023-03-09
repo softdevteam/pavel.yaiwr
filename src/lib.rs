@@ -32,25 +32,6 @@ impl Calc {
         }
     }
 
-    pub fn eval_ast(nodes: Vec<AstNode>) -> Result<u64, String> {
-        for node in nodes {
-            return Self::eval_exp(node);
-        }
-        return Err(String::from("Couldn't evaluate given nodes."));
-    }
-
-    fn eval_exp(exp: AstNode) -> Result<u64, String> {
-        match exp {
-            AstNode::Add { lhs, rhs } => Self::eval_exp(*lhs)?
-                .checked_add(Self::eval_exp(*rhs)?)
-                .ok_or("overflowed".to_string()),
-            AstNode::Mul { lhs, rhs } => Self::eval_exp(*lhs)?
-                .checked_mul(Self::eval_exp(*rhs)?)
-                .ok_or("overflowed".to_string()),
-            AstNode::Number { value } => Ok(value),
-        }
-    }
-
     fn get_parse_err(
         lexer: &dyn NonStreamingLexer<DefaultLexerTypes>,
         errs: Vec<LexParseError<u32, DefaultLexerTypes>>,
@@ -75,14 +56,21 @@ impl Calc {
                 prog.push(Instruction::Mul {})
             }
             AstNode::Number { value } => prog.push(Instruction::Push { value: value }),
+            AstNode::PrintLn { rhs } => {
+                Self::to_bytecode(*rhs, prog);
+                prog.push(Instruction::PrintLn {})
+            }
         }
     }
 
-    pub fn eval(instructions: &Vec<Instruction>) -> Result<u64, String> {
+    pub fn eval(instructions: &Vec<Instruction>) -> Result<Option<u64>, String> {
         let mut stack = vec![];
         for a in instructions {
             match a {
                 Instruction::Push { value } => stack.push(*value),
+                Instruction::PrintLn {} => {
+                    println!("{}", stack.pop().expect("cannot pop from empty stack"))
+                }
                 Instruction::Mul {} => {
                     let result = stack
                         .pop()
@@ -101,6 +89,9 @@ impl Calc {
                 }
             }
         }
-        return Ok(stack.pop().expect("cannot pop from empty stack"));
+        if stack.is_empty() {
+            return Ok(None);
+        }
+        return Ok(Some(stack.pop().unwrap()));
     }
 }
