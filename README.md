@@ -2,7 +2,7 @@
 
 # pavel.yaiwr
 
-Yet Another Interpreter Witten In Rust
+Yet Another Interpreter Written In Rust
 
 ## CI
 
