@@ -1,10 +1,13 @@
+[![Bors enabled](https://bors.tech/images/badge_small.svg)](https://app.bors.tech/repositories/61986)
+
 # pavel.yaiwr
 
-Yet Another Interpreter Witten In Rust
+Yet Another Interpreter Written In Rust
 
 ## CI
 
 [Buildbot](https://ci.soft-dev.org/#/builders/1)
+[Bors repository](https://app.bors.tech/repositories/61986)
 
 ## Usage
 
