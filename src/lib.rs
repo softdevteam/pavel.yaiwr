@@ -74,6 +74,24 @@ impl Calc {
         return msgs.join("\n");
     }
 
+    fn function_ast_to_bytecode_params(
+        &self,
+        params: Vec<AstNode>,
+    ) -> Result<Vec<String>, InterpError> {
+        let mut bytecode = vec![];
+        for p in params {
+            match p {
+                AstNode::ID { value } => bytecode.push(value),
+                _ => {
+                    return Err(InterpError::EvalError(
+                        "Enexpected function parameter type".to_string(),
+                    ))
+                }
+            }
+        }
+        return Ok(bytecode);
+    }
+
     pub fn to_bytecode(&mut self, ast_node: AstNode, prog: &mut Vec<Instruction>) {
         match ast_node {
             AstNode::Return { .. } => {}
@@ -90,18 +108,20 @@ impl Calc {
                     args: args_bytecode,
                 })
             }
-            AstNode::Function {
-                id,
-                params: _,
-                body,
-            } => {
+            AstNode::Function { id, params, body } => {
                 let bytecode = &mut vec![];
                 self.to_bytecode(*body, bytecode);
-                prog.push(Instruction::Function {
-                    id,
-                    body: bytecode.to_vec(),
-                    params: vec![],
-                });
+                let parsed_params = self.function_ast_to_bytecode_params(params);
+                match parsed_params {
+                    Ok(p) => {
+                        prog.push(Instruction::Function {
+                            id,
+                            body: bytecode.to_vec(),
+                            params: p,
+                        });
+                    }
+                    Err(..) => todo!(),
+                }
             }
             AstNode::Add { lhs, rhs } => {
                 self.to_bytecode(*lhs, prog);
@@ -124,6 +144,22 @@ impl Calc {
             }
             AstNode::ID { value } => prog.push(Instruction::Load { id: value }),
         }
+    }
+
+    fn eval_function_args(
+        &mut self,
+        args: &Vec<Vec<Instruction>>,
+    ) -> Result<Vec<u64>, InterpError> {
+        let mut result = vec![];
+        for arg_set in args {
+            let evaluated = self.eval(arg_set);
+            match evaluated {
+                Ok(Some(x)) => result.push(x),
+                Ok(None) => {}
+                Err(e) => return Err(e),
+            }
+        }
+        return Ok(result);
     }
 
     fn eval_function(
@@ -151,9 +187,19 @@ impl Calc {
                 }
                 if params.is_empty() && args.is_empty() {
                     return self.eval(&body.clone());
-                } 
+                }
+                let args = self.eval_function_args(&args);
+                if let Ok(a) = args {
+                    // TODO: handler args scope and evaluation
+                    // let mut i = 0;
+                    // for p in a {
+                    //     println!("x={:?}", p);
+                    //     i += 1;
+                    // }
+                    // println!("args: {:?}", &a);
+                    // println!("params: {:?}", &params);
+                }
                 Ok(None)
-                // TODO: handle args
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -166,24 +212,26 @@ impl Calc {
     pub fn eval(&mut self, instructions: &Vec<Instruction>) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
             match instruction {
-                Instruction::Function {
-                    body: _,
-                    id,
-                    params: _,
-                } => {
+                Instruction::Function { body, id, params } => {
                     if let None = self.fun_store.get(id) {
-                        self.fun_store.insert(id.to_string(), instruction.clone());
+                        self.fun_store.insert(
+                            id.to_string(),
+                            Instruction::Function {
+                                id: id.to_string(),
+                                params: params.to_vec(),
+                                body: body.to_vec(),
+                            },
+                        );
                     } else {
-                        // TODO: deal with functions that already declraed with the same id
+                        return Err(InterpError::EvalError(format!(
+                            "Function with the id: '{}' already defined!",
+                            id
+                        )));
                     }
                 }
-                Instruction::FunctionCall { id, args } => {
-                    return self.eval_function(id, args);
-                }
+                Instruction::FunctionCall { id, args } => return self.eval_function(id, args),
                 Instruction::Push { value } => self.stack.push(*value),
-                Instruction::PrintLn {} => {
-                    println!("{}", self.stack.pop().unwrap())
-                }
+                Instruction::PrintLn {} => println!("{}", self.stack.pop().unwrap()),
                 Instruction::Mul {} => {
                     let val = self
                         .stack_pop()?
