@@ -21,4 +21,16 @@ pub enum AstNode {
         id: String,
         rhs: Box<AstNode>,
     },
+    Function {
+        id: String,
+        params: Vec<AstNode>,
+        body: Box<AstNode>
+    },
+    FunctionCall {
+        id: String,
+        args: Vec<AstNode>
+    },
+    Return {
+        body: Box<AstNode>,
+    },
 }

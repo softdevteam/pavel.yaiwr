@@ -1,26 +1,28 @@
 #[cfg(test)]
 mod tests {
     use yaiwr::{instruction::Instruction, Calc};
+
     #[test]
     fn eval_println_statement_add() {
         let mut c = Calc::new();
         let ast = c.from_str("println(2+2);").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
-        assert_eq!(c.eval(bytecode), Ok(None));
+        assert_eq!(c.eval(bytecode).unwrap(), None);
     }
+    
     #[test]
     fn eval_println_statement_mul() {
         let mut c = Calc::new();
         let ast = c.from_str("println(2*2);").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
-        assert_eq!(c.eval(bytecode), Ok(None));
+        assert_eq!(c.eval(bytecode).unwrap(), None);
     }
 
     #[test]
     fn println_statement_numeric_bytecode() {
-        let c = Calc::new();
+        let mut c = Calc::new();
         let ast = c.from_str("println(1);").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
@@ -35,7 +37,7 @@ mod tests {
 
     #[test]
     fn print_statement_add_bytecode() {
-        let c = Calc::new();
+        let mut c = Calc::new();
         let ast = c.from_str("println (1+1);").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
@@ -57,7 +59,7 @@ mod tests {
         let ast = c.from_str("println 2+2").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
-        assert_eq!(c.eval(bytecode), Ok(None));
+        assert_eq!(c.eval(bytecode).unwrap(), None);
     }
     #[test]
     #[should_panic]
@@ -66,7 +68,7 @@ mod tests {
         let ast = c.from_str("println 2*2").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
-        assert_eq!(c.eval(bytecode), Ok(None));
+        assert_eq!(c.eval(bytecode).unwrap(), None);
     }
 
     #[test]
@@ -76,7 +78,7 @@ mod tests {
             .arg("run")
             .arg("println(2);")
             .output()
-            .expect("comand 'cargo run println(2);' failed");
+            .expect("command 'cargo run println(2);' failed");
 
         assert_eq!(String::from_utf8_lossy(&output.stdout), "2\n");
     }

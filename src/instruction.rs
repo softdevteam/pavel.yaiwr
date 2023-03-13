@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Instruction {
     Add,
     Mul,
@@ -6,4 +6,13 @@ pub enum Instruction {
     PrintLn,
     Assign { id: String },
     Load { id: String },
+    Function {
+        id: String,
+        params: Vec<String>,
+        body: Vec<Instruction>
+    },
+    FunctionCall {
+        id: String,
+        args: Vec<Vec<Instruction>>
+    }
 }
