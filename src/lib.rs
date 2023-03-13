@@ -90,7 +90,11 @@ impl Calc {
                     args: args_bytecode,
                 })
             }
-            AstNode::Function { id, params, body } => {
+            AstNode::Function {
+                id,
+                params: _,
+                body,
+            } => {
                 let bytecode = &mut vec![];
                 self.to_bytecode(*body, bytecode);
                 prog.push(Instruction::Function {
@@ -122,6 +126,43 @@ impl Calc {
         }
     }
 
+    fn eval_function(
+        &mut self,
+        id: &String,
+        args: &Vec<Vec<Instruction>>,
+    ) -> Result<Option<u64>, InterpError> {
+        let function = self
+            .fun_store
+            .get(id)
+            .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
+
+        match function {
+            Instruction::Function {
+                id: _,
+                params,
+                body,
+            } => {
+                if params.len() != args.len() {
+                    return Err(InterpError::EvalError(format!(
+                        "Unexpected number of function arguments. Expected: {}, Got: {}",
+                        params.len(),
+                        args.len()
+                    )));
+                }
+                if params.is_empty() && args.is_empty() {
+                    return self.eval(&body.clone());
+                } 
+                Ok(None)
+                // TODO: handle args
+            }
+            _ => {
+                return Err(InterpError::EvalError(
+                    "Unexpected type registrated as a function!".to_string(),
+                ));
+            }
+        }
+    }
+
     pub fn eval(&mut self, instructions: &Vec<Instruction>) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
             match instruction {
@@ -137,30 +178,7 @@ impl Calc {
                     }
                 }
                 Instruction::FunctionCall { id, args } => {
-                    let f = self
-                        .fun_store
-                        .get(id)
-                        .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
-
-                    match f {
-                        Instruction::Function {
-                            id: _,
-                            params,
-                            body,
-                        } => {
-                            if params.is_empty() && args.is_empty() {
-                                // TODO: think of some kind of scoping mechanism instead of new whole VM instance!
-                                let mut c = Calc::new();
-                                return c.eval(body);
-                            }
-                            // TODO: deal with a list of parameters and arguments
-                        }
-                        _ => {
-                            return Err(InterpError::EvalError(
-                                "Unexpected type registrated as a function!".to_string(),
-                            ));
-                        }
-                    }
+                    return self.eval_function(id, args);
                 }
                 Instruction::Push { value } => self.stack.push(*value),
                 Instruction::PrintLn {} => {

@@ -1,2 +1,2 @@
-fun _f(){ println(2+2); };
-_f();
+fun _f1(){ println(2+2); };
+_f1();
