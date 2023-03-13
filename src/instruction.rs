@@ -2,17 +2,23 @@
 pub enum Instruction {
     Add,
     Mul,
-    Push { value: u64 },
+    Push {
+        value: u64,
+    },
     PrintLn,
-    Assign { id: String },
-    Load { id: String },
+    Assign {
+        id: String,
+    },
+    Load {
+        id: String,
+    },
     Function {
         id: String,
         params: Vec<String>,
-        body: Vec<Instruction>
+        body: Vec<Instruction>,
     },
     FunctionCall {
         id: String,
-        args: Vec<Vec<Instruction>>
-    }
+        args: Vec<Vec<Instruction>>,
+    },
 }

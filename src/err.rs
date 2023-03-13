@@ -15,9 +15,13 @@ pub enum InterpError {
 impl Display for InterpError {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match self {
-            InterpError::EvalError(msg) => f.write_str(format!("Evaluation error: {}!", msg).as_str()),
+            InterpError::EvalError(msg) => {
+                f.write_str(format!("Evaluation error: {}!", msg).as_str())
+            }
             InterpError::EmptyStack => f.write_str("Cannot pop from empty stack!"),
-            InterpError::UndefinedFunction(id) => f.write_str(format!("Cannot find function wiht id '{}'!", id).as_str()),
+            InterpError::UndefinedFunction(id) => {
+                f.write_str(format!("Cannot find function wiht id '{}'!", id).as_str())
+            }
             InterpError::ParseError(line) => {
                 f.write_str(format!("Parse error: {}!", line).as_str())
             }

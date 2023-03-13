@@ -10,7 +10,7 @@ mod tests {
         c.to_bytecode(ast, bytecode);
         assert_eq!(c.eval(bytecode).unwrap(), None);
     }
-    
+
     #[test]
     fn eval_println_statement_mul() {
         let mut c = Calc::new();

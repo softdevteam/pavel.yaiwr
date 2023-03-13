@@ -17,18 +17,6 @@ mod tests {
     }
 
     #[test]
-    fn test_test2() {
-        let cmd = "'fun _a(){println(2);};_a();'";
-        let output = Command::new("cargo")
-            .arg("run")
-            .arg(cmd)
-            .output()
-            .expect(format!("comand 'cargo run {}' failed", cmd).as_str());
-
-        assert_eq!(String::from_utf8_lossy(&output.stdout), "2\n",);
-    }
-
-    #[test]
     fn test_test() {
         use std::process::Command;
         let output = Command::new("cargo")

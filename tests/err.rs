@@ -31,7 +31,7 @@ mod tests {
             "Program file: 'imaginary-file.yaiwr' cannot be found!\n"
         );
     }
-    
+
     #[test]
     fn parse_sderr_error() {
         let output = Command::new("cargo")
