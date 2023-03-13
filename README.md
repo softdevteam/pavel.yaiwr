@@ -18,8 +18,10 @@ $ cargo run
 
 ### Cli args
 ```shell
-$ cargo run 'println(2+2+3)'
-7
+$ cargo run 'println(2+2+3);'
+6
+6
+6
 ```
 
 ### File
@@ -47,6 +49,35 @@ $ cargo test
 $ run_docker_ci_job # optional (--prune)
 ```
 
+## Langugage Spec(ish)
+
+### Statements
+
+`println` - Prints to the standard output, with a new line
+
+Example:
+
+```
+println(1+2);
+println(1);
+```
+
+### Variables
+
+Variable names:
+
+1. Variable names have to start with "_"
+2. Variable names can only include alphanumeric and underscore ("_") characters
+
+Example:
+```
+let _someVariable = (1+2);
+let _someVariable3 = 1;
+let _x = 2;
+let _y = 1 * _x;
+```
+Repl: 
+
 # TODOs
 
 [x] Go through the calc example in the quick start guide
@@ -59,7 +90,13 @@ $ run_docker_ci_job # optional (--prune)
 
 [x] Implement print statement
 
+[x] Implement variables
+
 [ ] Propogate all errors to top-level where the error is printed
+
+[ ] Compile variable names to integers
+
+[ ] Implement functions
 
 [ ] Add support for custom error handling, i.e InterpError
 
