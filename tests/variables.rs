@@ -15,24 +15,24 @@ mod tests {
     #[test]
     fn var_single_numeric() {
         let c = eval_prog("let _a = 2;");
-        assert_eq!(c.get_var("_a".to_string()), &2);
+        assert_eq!(c.get_var("_a".to_string()).unwrap(), &2);
     }
     #[test]
     fn var_expression() {
         let c = eval_prog("let _b = (1+2*3);");
-        assert_eq!(c.get_var("_b".to_string()), &7);
+        assert_eq!(c.get_var("_b".to_string()).unwrap(), &7);
     }
 
     #[test]
     fn var_multiple_lower_upper_numeric() {
         let c = eval_prog("let _ABCDabc123 = 1984;");
-        assert_eq!(c.get_var("_ABCDabc123".to_string()), &1984);
+        assert_eq!(c.get_var("_ABCDabc123".to_string()).unwrap(), &1984);
     }
 
     #[test]
     fn var_single_lower_upper_numeric() {
         let c = eval_prog("let _aB1 = 1984;");
-        assert_eq!(c.get_var("_aB1".to_string()), &1984);
+        assert_eq!(c.get_var("_aB1".to_string()).unwrap(), &1984);
     }
 
     #[test]
