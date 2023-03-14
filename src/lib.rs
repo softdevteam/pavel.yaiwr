@@ -215,7 +215,7 @@ impl Calc {
         for instruction in instructions {
             match instruction {
                 Instruction::Return { block } => {
-                    return self.eval(block);
+                    return self.eval(block)
                 }
                 Instruction::Function {
                     block: body,
@@ -240,10 +240,15 @@ impl Calc {
                 }
                 Instruction::FunctionCall { id, args } => {
                     let arg_list = self.eval_function_args(&args)?;
-                    return self.eval_function_call(&arg_list, id);
+                    let res = self.eval_function_call(&arg_list, id)?;
+                    if let Some(x) = res {
+                        self.stack_push(x);
+                    }
                 }
                 Instruction::Push { value } => self.stack.push(*value),
-                Instruction::PrintLn => println!("{}", self.stack.pop().unwrap()),
+                Instruction::PrintLn => {
+                    println!("{}", self.stack.pop().unwrap());
+                }
                 Instruction::Mul {} => {
                     let val = self
                         .stack_pop()?
