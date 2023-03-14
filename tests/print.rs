@@ -1,14 +1,13 @@
 #[cfg(test)]
 mod tests {
     use yaiwr::{instruction::Instruction, Calc};
-
     #[test]
     fn eval_println_statement_add() {
         let mut c = Calc::new();
         let ast = c.from_str("println(2+2);").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
-        assert_eq!(c.eval(bytecode).unwrap(), None);
+        assert_eq!(c.eval(bytecode), Ok(None));
     }
     #[test]
     fn eval_println_statement_mul() {
@@ -16,7 +15,7 @@ mod tests {
         let ast = c.from_str("println(2*2);").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
-        assert_eq!(c.eval(bytecode).unwrap(), None);
+        assert_eq!(c.eval(bytecode), Ok(None));
     }
 
     #[test]
@@ -58,8 +57,9 @@ mod tests {
         let ast = c.from_str("println 2+2").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
-        assert_eq!(c.eval(bytecode).unwrap(), None);
+        assert_eq!(c.eval(bytecode), Ok(None));
     }
+
     #[test]
     #[should_panic]
     fn eval_println_statement_mul_parsing_error() {
@@ -67,7 +67,7 @@ mod tests {
         let ast = c.from_str("println 2*2").unwrap();
         let bytecode = &mut vec![];
         c.to_bytecode(ast, bytecode);
-        assert_eq!(c.eval(bytecode).unwrap(), None);
+        assert_eq!(c.eval(bytecode), Ok(None));
     }
 
     #[test]
@@ -77,8 +77,20 @@ mod tests {
             .arg("run")
             .arg("println(2);")
             .output()
-            .expect("command 'cargo run println(2);' failed");
+            .expect("comand 'cargo run println(2);' failed");
 
         assert_eq!(String::from_utf8_lossy(&output.stdout), "2\n");
+    }
+
+    #[test]
+    fn println_single_line_multiple_statements_cmd() {
+        use std::process::Command;
+        let output = Command::new("cargo")
+            .arg("run")
+            .arg("let _a = 2; println(_a + 3);")
+            .output()
+            .expect("comand 'cargo run 'let _a = 2; println(_a + 3);' failed");
+
+        assert_eq!(String::from_utf8_lossy(&output.stdout), "5\n");
     }
 }
