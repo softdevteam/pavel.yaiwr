@@ -2,7 +2,7 @@
 mod tests {
     use std::process::Command;
 
-    use yaiwr::{Calc, instruction::Instruction};
+    use yaiwr::{instruction::Instruction, Calc};
 
     #[test]
     fn var_test_file_expect_output_1984() {
@@ -17,61 +17,31 @@ mod tests {
     }
     #[test]
     fn function_declaration() {
-        let prog = "fun _some (){ 2+2 }";
+        let prog = "fun _some (){ return (2+2); }";
         let calc = &mut Calc::new();
         let ast = calc.from_str(prog).unwrap();
         let bytecode = &mut vec![];
         calc.to_bytecode(ast, bytecode);
         match bytecode.as_slice() {
             [first] => {
-                assert_eq!(first, &Instruction::Function{ 
-                        id: "_some".to_string(), 
+                assert_eq!(
+                    first,
+                    &Instruction::Function {
+                        id: "_some".to_string(),
                         params: vec![],
-                        block: vec![
-                            Instruction::Return { block: vec![
-                                Instruction::Push {
-                                    value:2
-                                },
-                                Instruction::Push {
-                                    value:2
-                                },
+                        block: vec![Instruction::Return {
+                            block: vec![
+                                Instruction::Push { value: 2 },
+                                Instruction::Push { value: 2 },
                                 Instruction::Add
-                            ]}
-                        ]
-                    });
+                            ]
+                        }]
+                    }
+                );
             }
             _ => panic!("expected bytecodes to be not empty!"),
         }
     }
-    
-    // #[test]
-    // fn function_declaration() {
-    //     let prog = "fun _some (){ return (2+2); }";
-    //     let calc = &mut Calc::new();
-    //     let ast = calc.from_str(prog).unwrap();
-    //     let bytecode = &mut vec![];
-    //     calc.to_bytecode(ast, bytecode);
-    //     match bytecode.as_slice() {
-    //         [first] => {
-    //             assert_eq!(first, &Instruction::Function{ 
-    //                     id: "_some".to_string(), 
-    //                     params: vec![],
-    //                     block: vec![
-    //                         Instruction::Return { block: vec![
-    //                             Instruction::Push {
-    //                                 value:2
-    //                             },
-    //                             Instruction::Push {
-    //                                 value:2
-    //                             },
-    //                             Instruction::Add
-    //                         ]}
-    //                     ]
-    //                 });
-    //         }
-    //         _ => panic!("expected bytecodes to be not empty!"),
-    //     }
-    // }
 
     #[test]
     fn test_functions_args() {

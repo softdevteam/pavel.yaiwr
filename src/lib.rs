@@ -101,7 +101,7 @@ impl Calc {
             AstNode::Return { block: body } => {
                 let bytecode = &mut vec![];
                 self.to_bytecode(*body, bytecode);
-                prog.push(Instruction::Return {  
+                prog.push(Instruction::Return {
                     block: bytecode.to_vec(),
                 });
             }
@@ -118,7 +118,11 @@ impl Calc {
                     args: args_bytecode,
                 })
             }
-            AstNode::Function { id, params, block: body } => {
+            AstNode::Function {
+                id,
+                params,
+                block: body,
+            } => {
                 let bytecode = &mut vec![];
                 self.to_bytecode(*body, bytecode);
                 let parsed_params = self.function_ast_to_bytecode_params(params);
@@ -210,10 +214,14 @@ impl Calc {
     pub fn eval(&mut self, instructions: &Vec<Instruction>) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
             match instruction {
-                Instruction::Return {block } =>{
+                Instruction::Return { block } => {
                     return self.eval(block);
-                },
-                Instruction::Function { block: body, id, params } => {
+                }
+                Instruction::Function {
+                    block: body,
+                    id,
+                    params,
+                } => {
                     if let None = self.fun_store.get(id) {
                         self.fun_store.insert(
                             id.to_string(),
