@@ -162,16 +162,15 @@ impl Calc {
         return Ok(result);
     }
 
-    fn eval_function(
+    fn eval_function_call(
         &mut self,
+        args: &Vec<u64>,
         id: &String,
-        args: &Vec<Vec<Instruction>>,
     ) -> Result<Option<u64>, InterpError> {
         let function = self
             .fun_store
             .get(id)
             .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
-
         match function {
             Instruction::Function {
                 id: _,
@@ -185,21 +184,10 @@ impl Calc {
                         args.len()
                     )));
                 }
-                if params.is_empty() && args.is_empty() {
-                    return self.eval(&body.clone());
+                for (i, p) in params.iter().enumerate() {
+                    self.var_store.insert(p.to_string(), args[i]);
                 }
-                let args = self.eval_function_args(&args);
-                if let Ok(a) = args {
-                    // TODO: handler args scope and evaluation
-                    // let mut i = 0;
-                    // for p in a {
-                    //     println!("x={:?}", p);
-                    //     i += 1;
-                    // }
-                    // println!("args: {:?}", &a);
-                    // println!("params: {:?}", &params);
-                }
-                Ok(None)
+                return self.eval(&body.clone());
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -229,7 +217,10 @@ impl Calc {
                         )));
                     }
                 }
-                Instruction::FunctionCall { id, args } => return self.eval_function(id, args),
+                Instruction::FunctionCall { id, args } => {
+                    let arg_list = self.eval_function_args(&args)?;
+                    return self.eval_function_call(&arg_list, id);
+                }
                 Instruction::Push { value } => self.stack.push(*value),
                 Instruction::PrintLn {} => println!("{}", self.stack.pop().unwrap()),
                 Instruction::Mul {} => {

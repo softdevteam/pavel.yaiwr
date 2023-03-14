@@ -2,8 +2,6 @@
 mod tests {
     use std::process::Command;
 
-    use yaiwr::Calc;
-
     #[test]
     fn var_test_file_expect_output_1984() {
         let cmd = "'fun _some (){ 2+2 }'";
@@ -17,14 +15,14 @@ mod tests {
     }
 
     #[test]
-    fn test_test() {
+    fn test_functions_args() {
         use std::process::Command;
         let output = Command::new("cargo")
             .arg("run")
-            .arg("programs/functions.yaiwr")
+            .arg("programs/tests/functions_expect_output_15.yaiwr")
             .output()
-            .expect("command 'cargo run programs/functions.yaiwr' failed");
+            .expect("command 'cargo run programs/tests/functions_expect_output_15.yaiwr' failed");
 
-        assert_eq!(String::from_utf8_lossy(&output.stdout), "4\n");
+        assert_eq!(String::from_utf8_lossy(&output.stdout), "15\n");
     }
 }
