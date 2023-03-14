@@ -21,20 +21,20 @@ ParamList -> Result<Vec<AstNode>, ()>:
     ;
 
 Function -> Result<AstNode, ()>:
-    "FUNCTION" "ID" "(" ")" "{" Expr "}" ";" { 
+    "FUNCTION" "ID" "(" ")" "{" Expr "}" { 
         let id = $2.map_err(|_| ())?;
         Ok(AstNode::Function{ 
             id: $lexer.span_str(id.span()).to_string(),
             params: vec![],
-            body: Box::new($6?)
+            block: Box::new($6?)
         }) 
      }
-    | "FUNCTION" "ID" "(" ParamList ")" "{" Expr "}" ";" { 
+    | "FUNCTION" "ID" "(" ParamList ")" "{" Expr "}" { 
         let id = $2.map_err(|_| ())?;
         Ok(AstNode::Function{ 
             id: $lexer.span_str(id.span()).to_string(),
             params: $4.map_err(|_| ())?,
-            body: Box::new($7?)
+            block: Box::new($7?)
         }) 
      }
     ;
@@ -51,7 +51,7 @@ Term -> Result<AstNode, ()>:
 
 CallableExpr -> Result<AstNode, ()>:
     "(" Expr ")" { $2 }
-    | "RETURN" Expr ";" { Ok(AstNode::Return{ body: Box::new($2?) }) }
+    | "RETURN" Expr ";" { Ok(AstNode::Return{ block: Box::new($2?) }) }
     | Integer { $1 }
     | Id { $1 }
     | FunctionCall { $1 }

@@ -12,10 +12,13 @@ pub enum Instruction {
     Load {
         id: String,
     },
+    Return {
+        block: Vec<Instruction>,
+    },
     Function {
         id: String,
         params: Vec<String>,
-        body: Vec<Instruction>,
+        block: Vec<Instruction>,
     },
     FunctionCall {
         id: String,

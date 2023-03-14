@@ -24,13 +24,13 @@ pub enum AstNode {
     Function {
         id: String,
         params: Vec<AstNode>,
-        body: Box<AstNode>,
+        block: Box<AstNode>,
     },
     FunctionCall {
         id: String,
         args: Vec<AstNode>,
     },
     Return {
-        body: Box<AstNode>,
+        block: Box<AstNode>,
     },
 }

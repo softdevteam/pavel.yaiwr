@@ -1,4 +1,5 @@
 use instruction::Instruction;
+use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use std::collections::HashMap;
@@ -36,11 +37,14 @@ impl Calc {
     }
 
     pub fn stack_pop(&mut self) -> Result<u64, InterpError> {
-        return self.stack.pop().ok_or(InterpError::EmptyStack);
+        let val = self.stack.pop().ok_or(InterpError::EmptyStack)?;
+        debug!("STACK POP: {:?}", &self.stack);
+        return Ok(val);
     }
 
     pub fn stack_push(&mut self, val: u64) {
         self.stack.push(val);
+        debug!("STACK PUSH: {:?}", &self.stack);
     }
 
     pub fn from_str(&self, input: &str) -> Result<AstNode, InterpError> {
@@ -94,7 +98,13 @@ impl Calc {
 
     pub fn to_bytecode(&mut self, ast_node: AstNode, prog: &mut Vec<Instruction>) {
         match ast_node {
-            AstNode::Return { .. } => {}
+            AstNode::Return { block: body } => {
+                let bytecode = &mut vec![];
+                self.to_bytecode(*body, bytecode);
+                prog.push(Instruction::Return {  
+                    block: bytecode.to_vec(),
+                });
+            }
             AstNode::FunctionCall { id, args } => {
                 let mut args_bytecode = vec![];
 
@@ -108,7 +118,7 @@ impl Calc {
                     args: args_bytecode,
                 })
             }
-            AstNode::Function { id, params, body } => {
+            AstNode::Function { id, params, block: body } => {
                 let bytecode = &mut vec![];
                 self.to_bytecode(*body, bytecode);
                 let parsed_params = self.function_ast_to_bytecode_params(params);
@@ -116,7 +126,7 @@ impl Calc {
                     Ok(p) => {
                         prog.push(Instruction::Function {
                             id,
-                            body: bytecode.to_vec(),
+                            block: bytecode.to_vec(),
                             params: p,
                         });
                     }
@@ -175,7 +185,7 @@ impl Calc {
             Instruction::Function {
                 id: _,
                 params,
-                body,
+                block: body,
             } => {
                 if params.len() != args.len() {
                     return Err(InterpError::EvalError(format!(
@@ -200,14 +210,17 @@ impl Calc {
     pub fn eval(&mut self, instructions: &Vec<Instruction>) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
             match instruction {
-                Instruction::Function { body, id, params } => {
+                Instruction::Return {block } =>{
+                    return self.eval(block);
+                },
+                Instruction::Function { block: body, id, params } => {
                     if let None = self.fun_store.get(id) {
                         self.fun_store.insert(
                             id.to_string(),
                             Instruction::Function {
                                 id: id.to_string(),
                                 params: params.to_vec(),
-                                body: body.to_vec(),
+                                block: body.to_vec(),
                             },
                         );
                     } else {
