@@ -235,7 +235,7 @@ impl Calc {
                     return self.eval_function_call(&arg_list, id);
                 }
                 Instruction::Push { value } => self.stack.push(*value),
-                Instruction::PrintLn {} => println!("{}", self.stack.pop().unwrap()),
+                Instruction::PrintLn => println!("{}", self.stack.pop().unwrap()),
                 Instruction::Mul {} => {
                     let val = self
                         .stack_pop()?
