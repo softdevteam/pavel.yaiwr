@@ -112,6 +112,7 @@ impl Calc {
         &mut self,
         args: &Vec<u64>,
         id: &String,
+        outer_scope: &mut Scope,
     ) -> Result<Option<u64>, InterpError> {
         let function = self
             .fun_store
@@ -130,11 +131,14 @@ impl Calc {
                         args.len()
                     )));
                 }
-                let mut scope = Scope::new();
-                for (i, p) in params.iter().enumerate() {
-                    scope.var_store.insert(p.to_string(), args[i]);
+                let func_scope = &mut Scope::new();
+                for (k,v) in outer_scope.var_store.iter() {
+                    func_scope.var_store.insert(k.to_string(), *v);
                 }
-                return self.eval_with_scope(&body.clone(), &mut scope);
+                for (i, p) in params.iter().enumerate() {
+                    func_scope.var_store.insert(p.to_string(), args[i]);
+                }
+                return self.eval_with_scope(&body.clone(), func_scope);
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -192,7 +196,7 @@ impl Calc {
                 }
                 Instruction::FunctionCall { id, args } => {
                     let arg_list = self.eval_function_args(&args, scope)?;
-                    let res = self.eval_function_call(&arg_list, id)?;
+                    let res = self.eval_function_call(&arg_list, id, scope)?;
                     if let Some(x) = res {
                         self.stack_push(x);
                     }

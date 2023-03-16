@@ -37,7 +37,6 @@ mod tests {
 
     #[test]
     fn function_composition() {
-        let scope = &mut Scope::new();
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
         eval_prog(calc, "fun _add1 (_p1){ return _p1 + 1; }", scope).unwrap();
@@ -123,7 +122,6 @@ mod tests {
 
     #[test]
     fn function_declaration_with_params_bytecode() {
-        let scope = &mut Scope::new();
         let calc = &mut Calc::new();
         let prog = "fun _add (_p1, _p2){ return _p1 + _p2 + 1; }";
         let ast = calc.from_str(prog).unwrap();
@@ -267,5 +265,14 @@ mod tests {
             .expect("command 'cargo run programs/tests/functions_expect_output_15.yaiwr' failed");
 
         assert_eq!(String::from_utf8_lossy(&output.stdout), "15\n");
+    }
+
+    #[test]
+    fn function_outter_scope() {
+        let calc = &mut Calc::new();
+        let scope = &mut Scope::new();
+        eval_prog(calc, "let _outter_var = 666;", scope).unwrap();
+        eval_prog(calc, "fun _add1 (){ return _outter_var + 1; }", scope).unwrap();
+        assert_eq!(eval_prog(calc, "_add1()", scope).unwrap().unwrap(), 667);
     }
 }
