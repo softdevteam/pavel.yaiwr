@@ -1,26 +1,32 @@
 #[cfg(test)]
 mod tests {
-    use yaiwr::{instruction::Instruction, Calc};
+    use yaiwr::{instruction::Instruction, Calc, Scope};
 
     #[test]
     fn eval_mul_expression() {
-        let mut calc = Calc::new();
+        let calc = &mut Calc::new();
         let ast = calc.from_str("2*2").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        assert_eq!(calc.eval(&bytecode).unwrap(), Some(4));
+        assert_eq!(
+            calc.eval_with_scope(&bytecode, &mut Scope::new()).unwrap(),
+            Some(4)
+        );
     }
 
     #[test]
     fn eval_mul_expressions() {
-        let mut calc = Calc::new();
+        let calc = &mut Calc::new();
         let ast = calc.from_str("2*2*2").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        assert_eq!(calc.eval(&bytecode).unwrap(), Some(8));
+        assert_eq!(
+            calc.eval_with_scope(&bytecode, &mut Scope::new()).unwrap(),
+            Some(8)
+        );
     }
 
     #[test]
     fn mul_bytecode() {
-        let calc = Calc::new();
+        let calc = &mut Calc::new();
         let ast = calc.from_str("1*2").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
@@ -36,19 +42,19 @@ mod tests {
     #[test]
     #[should_panic(expected = "overflowed")]
     fn mul_overflow() {
-        let mut c = Calc::new();
+        let calc = &mut Calc::new();
         let input = format!("{}*{}", u64::MAX, 2);
-        let ast = c.from_str(input.as_str()).unwrap();
+        let ast = calc.from_str(input.as_str()).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        c.eval(&bytecode).unwrap();
+        calc.eval_with_scope(&bytecode, &mut Scope::new()).unwrap();
     }
 
     #[test]
     fn mul_no_overflow() {
-        let mut c = Calc::new();
+        let calc = &mut Calc::new();
         let input = format!("{}*{}", u64::MAX, 1);
-        let ast = c.from_str(input.as_str()).unwrap();
+        let ast = calc.from_str(input.as_str()).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        c.eval(&bytecode).unwrap();
+        calc.eval_with_scope(&bytecode, &mut Scope::new()).unwrap();
     }
 }

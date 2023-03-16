@@ -16,26 +16,36 @@ pub mod instruction;
 use ast::AstNode;
 use err::InterpError;
 
-pub struct Calc {
+#[derive(Debug)]
+pub struct Scope {
     var_store: HashMap<String, u64>,
+}
+
+impl Scope {
+    pub fn new() -> Self {
+        Scope {
+            var_store: HashMap::new(),
+        }
+    }
+
+    pub fn get_var(&self, id: &String) -> Result<&u64, InterpError> {
+        self.var_store
+            .get(id)
+            .ok_or(InterpError::VariableNotFound(id.to_string()))
+    }
+}
+
+pub struct Calc {
     fun_store: HashMap<String, Instruction>,
     stack: Vec<u64>,
 }
 
 impl Calc {
-    pub fn new() -> Calc {
+    pub fn new() -> Self {
         Calc {
-            var_store: HashMap::new(),
             fun_store: HashMap::new(),
             stack: vec![],
         }
-    }
-
-    pub fn get_var(&self, id: String) -> Result<&u64, InterpError> {
-        return self
-            .var_store
-            .get(&id)
-            .ok_or(InterpError::VariableNotFound(id));
     }
 
     pub fn stack_pop(&mut self) -> Result<u64, InterpError> {
@@ -85,10 +95,11 @@ impl Calc {
     fn eval_function_args(
         &mut self,
         args: &Vec<Vec<Instruction>>,
+        scope: &mut Scope,
     ) -> Result<Vec<u64>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
-            match self.eval(arg_set) {
+            match self.eval_with_scope(arg_set, scope) {
                 Ok(Some(x)) => result.push(x),
                 Ok(None) => {}
                 Err(e) => return Err(e),
@@ -119,11 +130,11 @@ impl Calc {
                         args.len()
                     )));
                 }
-                // TODO: Implement function scope/stack based variables
+                let mut scope = Scope::new();
                 for (i, p) in params.iter().enumerate() {
-                    self.var_store.insert(p.to_string(), args[i]);
+                    scope.var_store.insert(p.to_string(), args[i]);
                 }
-                return self.eval(&body.clone());
+                return self.eval_with_scope(&body.clone(), &mut scope);
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -133,12 +144,27 @@ impl Calc {
         }
     }
 
-    pub fn eval(&mut self, instructions: &Vec<Instruction>) -> Result<Option<u64>, InterpError> {
+    // pub fn eval(
+    //     &mut self,
+    //     instructions: &Vec<Instruction>
+    // ) -> Result<Option<u64>, InterpError> {
+    //     let scope = self.scope.clone();
+    //     return self.eval_with_scope(instructions, scope);
+    // }
+
+    pub fn eval_with_scope(
+        &mut self,
+        instructions: &Vec<Instruction>,
+        scope: &mut Scope,
+    ) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
-            debug!("eval: {:?}", instruction);
+            debug!(
+                ">>>>>>>>>>>>>>>>>> eval: {:?}. scope: {:?}. addr: {:p}",
+                instruction, scope, &scope
+            );
             match instruction {
                 Instruction::Return { block } => {
-                    let val = self.eval(block)?;
+                    let val = self.eval_with_scope(block, scope)?;
                     if let Some(x) = val {
                         self.stack_push(x);
                     }
@@ -165,7 +191,7 @@ impl Calc {
                     }
                 }
                 Instruction::FunctionCall { id, args } => {
-                    let arg_list = self.eval_function_args(&args)?;
+                    let arg_list = self.eval_function_args(&args, scope)?;
                     let res = self.eval_function_call(&arg_list, id)?;
                     if let Some(x) = res {
                         self.stack_push(x);
@@ -191,10 +217,19 @@ impl Calc {
                 }
                 Instruction::Assign { id } => {
                     let val = self.stack_pop()?;
-                    self.var_store.insert(id.to_string(), val);
+                    scope.var_store.insert(id.to_string(), val);
+                    debug!(
+                        ">>>>>>>>>>>>>>>>>> Assign: {:?}. scope: {:?}, addr: {:p}",
+                        id, scope, &scope
+                    );
                 }
                 Instruction::Load { id } => {
-                    self.stack_push(*self.get_var(id.into())?);
+                    debug!(
+                        ">>>>>>>>>>>>>>>>>> Load: {:?}. scope: {:?}, addr: {:p}",
+                        id, scope, &scope
+                    );
+                    let val = scope.get_var(id)?;
+                    self.stack_push(*val);
                 }
             }
         }
