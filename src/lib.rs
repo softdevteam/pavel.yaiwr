@@ -132,7 +132,7 @@ impl Calc {
                     )));
                 }
                 let func_scope = &mut Scope::new();
-                for (k,v) in outer_scope.var_store.iter() {
+                for (k, v) in outer_scope.var_store.iter() {
                     func_scope.var_store.insert(k.to_string(), *v);
                 }
                 for (i, p) in params.iter().enumerate() {
