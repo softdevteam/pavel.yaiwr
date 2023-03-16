@@ -225,15 +225,15 @@ mod tests {
         }
     }
 
-    // #[test]
-    // fn test_functions_args() {
-    //     use std::process::Command;
-    //     let output = Command::new("cargo")
-    //         .arg("run")
-    //         .arg("programs/tests/functions_expect_output_15.yaiwr")
-    //         .output()
-    //         .expect("command 'cargo run programs/tests/functions_expect_output_15.yaiwr' failed");
+    #[test]
+    fn test_functions_args() {
+        use std::process::Command;
+        let output = Command::new("cargo")
+            .arg("run")
+            .arg("programs/tests/functions_expect_output_15.yaiwr")
+            .output()
+            .expect("command 'cargo run programs/tests/functions_expect_output_15.yaiwr' failed");
 
-    //     assert_eq!(String::from_utf8_lossy(&output.stdout), "15\n");
-    // }
+        assert_eq!(String::from_utf8_lossy(&output.stdout), "15\n");
+    }
 }
