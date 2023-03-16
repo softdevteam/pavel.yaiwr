@@ -86,7 +86,7 @@ fn eval_statement(
                 let bytecode = Calc::ast_to_bytecode(ast_node);
 
                 debug!("Bytecode: {:?}", &bytecode);
-                match calc.eval_with_scope(&bytecode, scope) {
+                match calc.eval(&bytecode, scope) {
                     Ok(eval_result) => {
                         result = eval_result;
                     }

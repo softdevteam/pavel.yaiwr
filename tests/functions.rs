@@ -9,7 +9,7 @@ mod tests {
     ) -> Result<Option<u64>, InterpError> {
         let ast = calc.from_str(input).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        return calc.eval_with_scope(&bytecode, scope);
+        return calc.eval(&bytecode, scope);
     }
 
     #[test]
@@ -97,8 +97,7 @@ mod tests {
         let prog1 = "fun _some (){ return 2*2; }";
         let ast = calc.from_str(prog1).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
-        calc.eval_with_scope(&func_declare_bc, &mut Scope::new())
-            .unwrap();
+        calc.eval(&func_declare_bc, &mut Scope::new()).unwrap();
         match func_declare_bc.as_slice() {
             [first] => {
                 assert_eq!(
@@ -126,8 +125,7 @@ mod tests {
         let prog = "fun _add (_p1, _p2){ return _p1 + _p2 + 1; }";
         let ast = calc.from_str(prog).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
-        calc.eval_with_scope(&func_declare_bc, &mut Scope::new())
-            .unwrap();
+        calc.eval(&func_declare_bc, &mut Scope::new()).unwrap();
         match func_declare_bc.as_slice() {
             [first] => {
                 assert_eq!(
@@ -161,8 +159,7 @@ mod tests {
         let prog_func_declaration = "fun _add (_p1, _p2){ return _p1 + _p2; }";
         let ast = calc.from_str(prog_func_declaration).unwrap();
         let func_declaration_bc = Calc::ast_to_bytecode(ast);
-        calc.eval_with_scope(&func_declaration_bc, &mut Scope::new())
-            .unwrap();
+        calc.eval(&func_declaration_bc, &mut Scope::new()).unwrap();
         match func_declaration_bc.as_slice() {
             [first] => {
                 assert_eq!(
@@ -190,8 +187,7 @@ mod tests {
         let prog_func_call = "_add(1,2)";
         let ast = calc.from_str(prog_func_call).unwrap();
         let func_call_bc = Calc::ast_to_bytecode(ast);
-        calc.eval_with_scope(&func_call_bc, &mut Scope::new())
-            .unwrap();
+        calc.eval(&func_call_bc, &mut Scope::new()).unwrap();
         match func_call_bc.as_slice() {
             [first] => {
                 assert_eq!(
@@ -215,8 +211,7 @@ mod tests {
         let prog_func_declaration = "fun _two_plus_two (){ return (2+2); }";
         let ast = calc.from_str(prog_func_declaration).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
-        calc.eval_with_scope(&func_declare_bc, &mut Scope::new())
-            .unwrap();
+        calc.eval(&func_declare_bc, &mut Scope::new()).unwrap();
         match func_declare_bc.as_slice() {
             [first] => {
                 assert_eq!(
@@ -239,8 +234,7 @@ mod tests {
         let prog_func_call = "_two_plus_two()";
         let ast = calc.from_str(prog_func_call).unwrap();
         let func_call_bc = Calc::ast_to_bytecode(ast);
-        calc.eval_with_scope(&func_call_bc, &mut Scope::new())
-            .unwrap();
+        calc.eval(&func_call_bc, &mut Scope::new()).unwrap();
         match func_call_bc.as_slice() {
             [first] => {
                 assert_eq!(
@@ -295,6 +289,6 @@ mod tests {
         eval_prog(calc, "let _a = 1;", scope).unwrap();
         eval_prog(calc, "fun _f1 (){ return _a; }", scope).unwrap();
         eval_prog(calc, "fun _f2 (){ return _f1() + _a; }", scope).unwrap();
-        assert_eq!(eval_prog(calc, "_f2()", scope).unwrap().unwrap(), 1);
+        assert_eq!(eval_prog(calc, "_f2()", scope).unwrap().unwrap(), 2);
     }
 }

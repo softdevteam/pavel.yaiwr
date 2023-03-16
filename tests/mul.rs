@@ -7,10 +7,7 @@ mod tests {
         let calc = &mut Calc::new();
         let ast = calc.from_str("2*2").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        assert_eq!(
-            calc.eval_with_scope(&bytecode, &mut Scope::new()).unwrap(),
-            Some(4)
-        );
+        assert_eq!(calc.eval(&bytecode, &mut Scope::new()).unwrap(), Some(4));
     }
 
     #[test]
@@ -18,10 +15,7 @@ mod tests {
         let calc = &mut Calc::new();
         let ast = calc.from_str("2*2*2").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        assert_eq!(
-            calc.eval_with_scope(&bytecode, &mut Scope::new()).unwrap(),
-            Some(8)
-        );
+        assert_eq!(calc.eval(&bytecode, &mut Scope::new()).unwrap(), Some(8));
     }
 
     #[test]
@@ -46,7 +40,7 @@ mod tests {
         let input = format!("{}*{}", u64::MAX, 2);
         let ast = calc.from_str(input.as_str()).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        calc.eval_with_scope(&bytecode, &mut Scope::new()).unwrap();
+        calc.eval(&bytecode, &mut Scope::new()).unwrap();
     }
 
     #[test]
@@ -55,6 +49,6 @@ mod tests {
         let input = format!("{}*{}", u64::MAX, 1);
         let ast = calc.from_str(input.as_str()).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        calc.eval_with_scope(&bytecode, &mut Scope::new()).unwrap();
+        calc.eval(&bytecode, &mut Scope::new()).unwrap();
     }
 }

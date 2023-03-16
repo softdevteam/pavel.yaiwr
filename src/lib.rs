@@ -99,7 +99,7 @@ impl Calc {
     ) -> Result<Vec<u64>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
-            match self.eval_with_scope(arg_set, scope) {
+            match self.eval(arg_set, scope) {
                 Ok(Some(x)) => result.push(x),
                 Ok(None) => {}
                 Err(e) => return Err(e),
@@ -138,7 +138,7 @@ impl Calc {
                 for (i, p) in params.iter().enumerate() {
                     func_scope.var_store.insert(p.to_string(), args[i]);
                 }
-                return self.eval_with_scope(&body.clone(), func_scope);
+                return self.eval(&body.clone(), func_scope);
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -148,15 +148,7 @@ impl Calc {
         }
     }
 
-    // pub fn eval(
-    //     &mut self,
-    //     instructions: &Vec<Instruction>
-    // ) -> Result<Option<u64>, InterpError> {
-    //     let scope = self.scope.clone();
-    //     return self.eval_with_scope(instructions, scope);
-    // }
-
-    pub fn eval_with_scope(
+    pub fn eval(
         &mut self,
         instructions: &Vec<Instruction>,
         scope: &mut Scope,
@@ -168,7 +160,7 @@ impl Calc {
             );
             match instruction {
                 Instruction::Return { block } => {
-                    let val = self.eval_with_scope(block, scope)?;
+                    let val = self.eval(block, scope)?;
                     if let Some(x) = val {
                         self.stack_push(x);
                     }

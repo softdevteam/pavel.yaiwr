@@ -9,7 +9,7 @@ mod tests {
         let ast = calc.from_str("let _a = 2;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         let scope = &mut Scope::new();
-        calc.eval_with_scope(&bytecode, scope).unwrap();
+        calc.eval(&bytecode, scope).unwrap();
         assert_eq!(scope.get_var(&"_a".to_string()).unwrap(), &2);
     }
     #[test]
@@ -18,7 +18,7 @@ mod tests {
         let ast = calc.from_str("let _b = (1+2*3);").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         let scope = &mut Scope::new();
-        calc.eval_with_scope(&bytecode, scope).unwrap();
+        calc.eval(&bytecode, scope).unwrap();
         assert_eq!(scope.get_var(&"_b".to_string()).unwrap(), &7);
     }
 
@@ -28,7 +28,7 @@ mod tests {
         let ast = calc.from_str("let _ABCDabc123 = 1984;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         let scope = &mut Scope::new();
-        calc.eval_with_scope(&bytecode, scope).unwrap();
+        calc.eval(&bytecode, scope).unwrap();
         assert_eq!(scope.get_var(&"_ABCDabc123".to_string()).unwrap(), &1984);
     }
 
@@ -38,7 +38,7 @@ mod tests {
         let ast = calc.from_str("let _aB1 = 1984;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         let scope = &mut Scope::new();
-        calc.eval_with_scope(&bytecode, scope).unwrap();
+        calc.eval(&bytecode, scope).unwrap();
         assert_eq!(scope.get_var(&"_aB1".to_string()).unwrap(), &1984);
     }
 
