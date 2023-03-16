@@ -141,11 +141,11 @@ _add(1,2)
 
 [x] Propogate all errors to top-level where the error is printed
 
+[x] Add support for custom error handling, i.e InterpError
+
 [ ] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
 
 [ ] Compile variable names to integers
-
-[ ] Add support for custom error handling, i.e InterpError
 
 [ ] Use actions to make an AST on the fly (see e.g. https://github.com/ltratt/pizauth/blob/master/src/config.y)
 
