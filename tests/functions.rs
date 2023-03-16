@@ -268,11 +268,33 @@ mod tests {
     }
 
     #[test]
-    fn function_outter_scope() {
+    fn function_scope_outter() {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
         eval_prog(calc, "let _outter_var = 666;", scope).unwrap();
         eval_prog(calc, "fun _add1 (){ return _outter_var + 1; }", scope).unwrap();
         assert_eq!(eval_prog(calc, "_add1()", scope).unwrap().unwrap(), 667);
+    }
+
+    #[test]
+    fn function_scope_variables_not_leaking() {
+        let calc = &mut Calc::new();
+        let scope = &mut Scope::new();
+        eval_prog(calc, "fun _f1 (){ let _a = 1; }", scope).unwrap();
+        eval_prog(calc, "fun _f2 (){ return _a + 1; }", scope).unwrap();
+        assert_eq!(
+            eval_prog(calc, "_f2()", scope),
+            Err(InterpError::VariableNotFound("_a".to_string()))
+        );
+    }
+
+    #[test]
+    fn function_outter_scope_with_function_call() {
+        let calc = &mut Calc::new();
+        let scope = &mut Scope::new();
+        eval_prog(calc, "let _a = 1;", scope).unwrap();
+        eval_prog(calc, "fun _f1 (){ return _a; }", scope).unwrap();
+        eval_prog(calc, "fun _f2 (){ return _f1() + _a; }", scope).unwrap();
+        assert_eq!(eval_prog(calc, "_f2()", scope).unwrap().unwrap(), 1);
     }
 }
