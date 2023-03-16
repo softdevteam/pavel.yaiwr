@@ -1,4 +1,6 @@
+use bytecode::to_bytecode;
 use instruction::Instruction;
+use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use std::collections::HashMap;
@@ -7,6 +9,7 @@ lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
 
 pub mod ast;
+pub mod bytecode;
 pub mod err;
 pub mod instruction;
 
@@ -15,6 +18,7 @@ use err::InterpError;
 
 pub struct Calc {
     var_store: HashMap<String, u64>,
+    fun_store: HashMap<String, Instruction>,
     stack: Vec<u64>,
 }
 
@@ -22,6 +26,7 @@ impl Calc {
     pub fn new() -> Calc {
         Calc {
             var_store: HashMap::new(),
+            fun_store: HashMap::new(),
             stack: vec![],
         }
     }
@@ -34,7 +39,7 @@ impl Calc {
     }
 
     pub fn stack_pop(&mut self) -> Result<u64, InterpError> {
-        return self.stack.pop().ok_or(InterpError::EmptyStack);
+        return Ok(self.stack.pop().ok_or(InterpError::EmptyStack)?);
     }
 
     pub fn stack_push(&mut self, val: u64) {
@@ -71,37 +76,104 @@ impl Calc {
             .collect::<Vec<String>>();
         return msgs.join("\n");
     }
+    pub fn ast_to_bytecode(ast: AstNode) -> Vec<Instruction> {
+        let bytecode = &mut vec![];
+        to_bytecode(ast, bytecode);
+        bytecode.to_vec()
+    }
 
-    pub fn to_bytecode(&self, ast_node: AstNode, prog: &mut Vec<Instruction>) {
-        match ast_node {
-            AstNode::Add { lhs, rhs } => {
-                self.to_bytecode(*lhs, prog);
-                self.to_bytecode(*rhs, prog);
-                prog.push(Instruction::Add {})
+    fn eval_function_args(
+        &mut self,
+        args: &Vec<Vec<Instruction>>,
+    ) -> Result<Vec<u64>, InterpError> {
+        let mut result = vec![];
+        for arg_set in args {
+            match self.eval(arg_set) {
+                Ok(Some(x)) => result.push(x),
+                Ok(None) => {}
+                Err(e) => return Err(e),
             }
-            AstNode::Mul { lhs, rhs } => {
-                self.to_bytecode(*lhs, prog);
-                self.to_bytecode(*rhs, prog);
-                prog.push(Instruction::Mul {})
+        }
+        return Ok(result);
+    }
+
+    fn eval_function_call(
+        &mut self,
+        args: &Vec<u64>,
+        id: &String,
+    ) -> Result<Option<u64>, InterpError> {
+        let function = self
+            .fun_store
+            .get(id)
+            .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
+        match function {
+            Instruction::Function {
+                id: _,
+                params,
+                block: body,
+            } => {
+                if params.len() != args.len() {
+                    return Err(InterpError::EvalError(format!(
+                        "Unexpected number of function arguments. Expected: {}, Got: {}",
+                        params.len(),
+                        args.len()
+                    )));
+                }
+                // TODO: Implement function scope/stack based variables
+                for (i, p) in params.iter().enumerate() {
+                    self.var_store.insert(p.to_string(), args[i]);
+                }
+                return self.eval(&body.clone());
             }
-            AstNode::Number { value } => prog.push(Instruction::Push { value: value }),
-            AstNode::PrintLn { rhs } => {
-                self.to_bytecode(*rhs, prog);
-                prog.push(Instruction::PrintLn {})
+            _ => {
+                return Err(InterpError::EvalError(
+                    "Unexpected type registrated as a function!".to_string(),
+                ));
             }
-            AstNode::Assign { id, rhs } => {
-                self.to_bytecode(*rhs, prog);
-                prog.push(Instruction::Assign { id })
-            }
-            AstNode::ID { value } => prog.push(Instruction::Load { id: value }),
         }
     }
+
     pub fn eval(&mut self, instructions: &Vec<Instruction>) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
+            debug!("eval: {:?}", instruction);
             match instruction {
+                Instruction::Return { block } => {
+                    let val = self.eval(block)?;
+                    if let Some(x) = val {
+                        self.stack_push(x);
+                    }
+                }
+                Instruction::Function {
+                    block: body,
+                    id,
+                    params,
+                } => {
+                    if let None = self.fun_store.get(id) {
+                        self.fun_store.insert(
+                            id.to_string(),
+                            Instruction::Function {
+                                id: id.to_string(),
+                                params: params.to_vec(),
+                                block: body.to_vec(),
+                            },
+                        );
+                    } else {
+                        return Err(InterpError::EvalError(format!(
+                            "Function with the id: '{}' already defined!",
+                            id
+                        )));
+                    }
+                }
+                Instruction::FunctionCall { id, args } => {
+                    let arg_list = self.eval_function_args(&args)?;
+                    let res = self.eval_function_call(&arg_list, id)?;
+                    if let Some(x) = res {
+                        self.stack_push(x);
+                    }
+                }
                 Instruction::Push { value } => self.stack.push(*value),
-                Instruction::PrintLn {} => {
-                    println!("{}", self.stack.pop().unwrap())
+                Instruction::PrintLn => {
+                    println!("{}", self.stack.pop().unwrap());
                 }
                 Instruction::Mul {} => {
                     let val = self

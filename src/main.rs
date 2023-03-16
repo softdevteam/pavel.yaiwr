@@ -77,10 +77,10 @@ fn eval_statement(input: &str, calc: &mut Calc) -> Result<Option<u64>, InterpErr
         match ast {
             Ok(ast_node) => {
                 debug!("AST: {:?}", &ast_node);
-                let bytecode = &mut vec![];
-                calc.to_bytecode(ast_node, bytecode);
+                let bytecode = Calc::ast_to_bytecode(ast_node);
+
                 debug!("Bytecode: {:?}", &bytecode);
-                match calc.eval(bytecode) {
+                match calc.eval(&bytecode) {
                     Ok(eval_result) => {
                         result = eval_result;
                     }
