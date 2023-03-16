@@ -139,7 +139,9 @@ _add(1,2)
 
 [x] Implement conditional statements
 
-[ ] Propogate all errors to top-level where the error is printed
+[x] Propogate all errors to top-level where the error is printed
+
+[ ] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
 
 [ ] Compile variable names to integers
 
