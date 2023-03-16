@@ -128,14 +128,17 @@ _add(1,2)
 
 Example:
 ```
+let _g = 0;
 // code here can't use "_a" variable
 
 fun _best_fun() {
-  let _a = "Shimmy Shimmy Ya"; 
+  // code here can use "_g" variable
+  let _a = 2;
   // code here can use "_a" variable
 }
 
 // code here can't use "_a" variable
+
 ```
 
 # TODOs
