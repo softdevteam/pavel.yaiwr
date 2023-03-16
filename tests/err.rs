@@ -23,7 +23,7 @@ mod tests {
             .expect(format!("command 'cargo run imaginary-file.yaiwr' failed").as_str());
         assert_eq!(
             String::from_utf8_lossy(&output.stderr),
-            "Program file: 'imaginary-file.yaiwr' cannot be found!\n"
+            "Evaluation error: Program file: 'imaginary-file.yaiwr' cannot be found!\n"
         );
     }
 
@@ -37,7 +37,7 @@ mod tests {
             .expect(format!("command 'cargo run ???' failed").as_str());
         assert_eq!(
             String::from_utf8_lossy(&output.stderr),
-            "Parse error: Parsing error at line 1 column 4. Repair sequences found:\n   1: Delete )!\n"
+            "Evaluation error: Parse error: Parsing error at line 1 column 4. Repair sequences found:\n   1: Delete );!\n"
         );
     }
 }
