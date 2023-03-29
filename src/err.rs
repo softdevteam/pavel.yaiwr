@@ -20,7 +20,7 @@ impl Display for InterpError {
             }
             InterpError::EmptyStack => f.write_str("Cannot pop from empty stack!"),
             InterpError::UndefinedFunction(id) => {
-                f.write_str(format!("Cannot find function wiht id '{}'!", id).as_str())
+                f.write_str(format!("Cannot find function with id '{}'!", id).as_str())
             }
             InterpError::ParseError(line) => {
                 f.write_str(format!("Parse error: {}!", line).as_str())
