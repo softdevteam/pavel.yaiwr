@@ -61,26 +61,23 @@ fn repl(calc: &mut Calc) {
 }
 
 fn eval_statement(input: &str, calc: &mut Calc) -> Result<Option<u64>, InterpError> {
-    let statements: Vec<String> = input
-        .replace("\n", "")
-        .split(";")
-        .map(|x| format!("{};", x))
-        .collect();
+    // TODO: add back support for multi-line statments
+    let statements: Vec<&str> = input.split("\n").collect();
 
     let mut result = None;
     for statement in statements {
-        if statement == ";" {
+        if statement == "" {
             continue;
         }
         debug!("statement: {:?}", &statement);
-        let ast = calc.from_str(statement.as_str());
+        let ast = calc.from_str(statement);
         match ast {
             Ok(ast_node) => {
                 debug!("AST: {:?}", &ast_node);
-                let bytecode = &mut vec![];
-                calc.to_bytecode(ast_node, bytecode);
+                let bytecode = Calc::ast_to_bytecode(ast_node);
+
                 debug!("Bytecode: {:?}", &bytecode);
-                match calc.eval(bytecode) {
+                match calc.eval(&bytecode) {
                     Ok(eval_result) => {
                         result = eval_result;
                     }
