@@ -11,4 +11,5 @@ _[a-zA-Z0-9_]+ "ID"
 println "PRINT_LN" 
 let "ASSIGN"
 [\t\n ]+ ;
+//.* ;
 . "UNMATCHED"

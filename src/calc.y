@@ -11,6 +11,7 @@ Expr -> Result<AstNode, ()>:
        let v = $2.map_err(|_| ())?;
        Ok(AstNode::Assign{ id: $lexer.span_str(v.span()).to_string(), rhs: Box::new($4?) }) 
      }
+    | { Ok(AstNode::Empty{})  } 
     ;
 
 Term -> Result<AstNode, ()>:

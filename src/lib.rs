@@ -94,6 +94,7 @@ impl Calc {
                 prog.push(Instruction::Assign { id })
             }
             AstNode::ID { value } => prog.push(Instruction::Load { id: value }),
+            AstNode::Empty {} => {}
         }
     }
     pub fn eval(&mut self, instructions: &Vec<Instruction>) -> Result<Option<u64>, InterpError> {

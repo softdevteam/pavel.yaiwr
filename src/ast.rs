@@ -21,4 +21,5 @@ pub enum AstNode {
         id: String,
         rhs: Box<AstNode>,
     },
+    Empty,
 }
