@@ -131,10 +131,12 @@ impl Calc {
                         args.len()
                     )));
                 }
+                // init local scope with outter scope
                 let func_scope = &mut Scope::new();
                 for (k, v) in outer_scope.var_store.iter() {
                     func_scope.var_store.insert(k.to_string(), *v);
                 }
+                // init local scope with parameters and arguments bindings
                 for (i, p) in params.iter().enumerate() {
                     func_scope.var_store.insert(p.to_string(), args[i]);
                 }
