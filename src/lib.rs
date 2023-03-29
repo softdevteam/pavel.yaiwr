@@ -155,7 +155,7 @@ impl Calc {
     ) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
             debug!(
-                ">>>>>>>>>>>>>>>>>> eval: {:?}. scope: {:?}. addr: {:p}",
+                "eval: {:?}. scope: {:?}. addr: {:p}",
                 instruction, scope, &scope
             );
             match instruction {
@@ -214,16 +214,10 @@ impl Calc {
                 Instruction::Assign { id } => {
                     let val = self.stack_pop()?;
                     scope.var_store.insert(id.to_string(), val);
-                    debug!(
-                        ">>>>>>>>>>>>>>>>>> Assign: {:?}. scope: {:?}, addr: {:p}",
-                        id, scope, &scope
-                    );
+                    debug!("Assign: {:?}. scope: {:?}, addr: {:p}", id, scope, &scope);
                 }
                 Instruction::Load { id } => {
-                    debug!(
-                        ">>>>>>>>>>>>>>>>>> Load: {:?}. scope: {:?}, addr: {:p}",
-                        id, scope, &scope
-                    );
+                    debug!("Load: {:?}. scope: {:?}, addr: {:p}", id, scope, &scope);
                     let val = scope.get_var(id)?;
                     self.stack_push(*val);
                 }
