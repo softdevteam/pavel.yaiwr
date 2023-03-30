@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use yaiwr::{instruction::Instruction, Calc, Scope};
+    use yaiwr::{instruction::Instruction, scope::Scope, Calc};
 
     #[test]
     fn eval_println_statement_add() {

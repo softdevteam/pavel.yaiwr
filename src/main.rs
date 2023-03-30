@@ -3,7 +3,7 @@ use std::{
     env, fs,
     io::{self, stdout, BufRead, Write},
 };
-use yaiwr::{err::InterpError, Calc, Scope};
+use yaiwr::{err::InterpError, scope::Scope, Calc};
 
 fn main() {
     env_logger::init();

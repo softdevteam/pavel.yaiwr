@@ -3,6 +3,7 @@ use instruction::Instruction;
 use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
+use scope::Scope;
 use std::collections::HashMap;
 
 lrlex_mod!("calc.l");
@@ -12,28 +13,10 @@ pub mod ast;
 pub mod bytecode;
 pub mod err;
 pub mod instruction;
+pub mod scope;
 
 use ast::AstNode;
 use err::InterpError;
-
-#[derive(Debug)]
-pub struct Scope {
-    var_store: HashMap<String, u64>,
-}
-
-impl Scope {
-    pub fn new() -> Self {
-        Scope {
-            var_store: HashMap::new(),
-        }
-    }
-
-    pub fn get_var(&self, id: &String) -> Result<&u64, InterpError> {
-        self.var_store
-            .get(id)
-            .ok_or(InterpError::VariableNotFound(id.to_string()))
-    }
-}
 
 pub struct Calc {
     fun_store: HashMap<String, Instruction>,
@@ -131,15 +114,8 @@ impl Calc {
                         args.len()
                     )));
                 }
-                // init local scope with outter scope
-                let func_scope = &mut Scope::new();
-                for (k, v) in outer_scope.var_store.iter() {
-                    func_scope.var_store.insert(k.to_string(), *v);
-                }
-                // init local scope with parameters and arguments bindings
-                for (i, p) in params.iter().enumerate() {
-                    func_scope.var_store.insert(p.to_string(), args[i]);
-                }
+                let func_scope = &mut Scope::from_scope(outer_scope);
+                func_scope.assign(HashMap::from_iter(params.iter().zip(args)));
                 return self.eval(&body.clone(), func_scope);
             }
             _ => {
@@ -156,10 +132,7 @@ impl Calc {
         scope: &mut Scope,
     ) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
-            debug!(
-                "eval: {:?}. scope: {:?}. addr: {:p}",
-                instruction, scope, &scope
-            );
+            debug!("eval: {:?}. scope: {:?}", instruction, scope);
             match instruction {
                 Instruction::Return { block } => {
                     let val = self.eval(block, scope)?;
@@ -216,10 +189,8 @@ impl Calc {
                 Instruction::Assign { id } => {
                     let val = self.stack_pop()?;
                     scope.var_store.insert(id.to_string(), val);
-                    debug!("Assign: {:?}. scope: {:?}, addr: {:p}", id, scope, &scope);
                 }
                 Instruction::Load { id } => {
-                    debug!("Load: {:?}. scope: {:?}, addr: {:p}", id, scope, &scope);
                     let val = scope.get_var(id)?;
                     self.stack_push(*val);
                 }

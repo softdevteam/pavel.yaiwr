@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use yaiwr::{Calc, Scope};
+    use yaiwr::{scope::Scope, Calc};
 
     #[test]
     fn eval_mul_and_plus_expressions() {

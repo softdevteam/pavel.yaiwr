@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use std::process::Command;
-    use yaiwr::{Calc, Scope};
+    use yaiwr::{scope::Scope, Calc};
 
     #[test]
     fn var_single_numeric() {
