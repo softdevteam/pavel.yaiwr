@@ -1,4 +1,4 @@
-use bytecode::to_bytecode;
+use bytecode::{block_to_bytecode};
 use instruction::Instruction;
 use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
@@ -69,15 +69,9 @@ impl Calc {
             .collect::<Vec<String>>();
         return msgs.join("\n");
     }
-    pub fn ast_to_bytecode(ast: Vec<AstNode>) -> Vec<Instruction> {
-        let bytecodes = &mut vec![];
 
-        for n in ast {
-            let bytecode = &mut vec![];
-            to_bytecode(n, bytecode);
-            bytecodes.append(bytecode);
-        }
-        bytecodes.to_vec()
+    pub fn ast_to_bytecode(ast: Vec<AstNode>) -> Vec<Instruction> {
+        return block_to_bytecode(ast)
     }
 
     fn eval_function_args(

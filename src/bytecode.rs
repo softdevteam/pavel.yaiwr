@@ -23,25 +23,27 @@ fn function_ast_params_to_vec(params: Vec<AstNode>) -> Vec<String> {
     return bytecode;
 }
 
+pub fn block_to_bytecode(block: Vec<AstNode>) -> Vec<Instruction>{
+    let bytecodes = &mut vec![];
+    for n in block {
+        let bytecode = &mut vec![];
+        to_bytecode(n, bytecode);
+        bytecodes.append(bytecode);
+    }
+    return bytecodes.to_vec();
+}
+
 fn function_declaration(
     id: String,
     params: Vec<AstNode>,
     block: Vec<AstNode>,
     prog: &mut Vec<Instruction>,
 ) {
-    let bytecodes = &mut vec![];
 
-    for n in block {
-        let bytecode = &mut vec![];
-        to_bytecode(n, bytecode);
-        bytecodes.append(bytecode);
-    }
-
-    // to_bytecode(block, bytecode);
     let parsed_params = function_ast_params_to_vec(params);
     prog.push(Instruction::Function {
         id,
-        block: bytecodes.to_vec(),
+        block: block_to_bytecode(block),
         params: parsed_params,
     });
 }
