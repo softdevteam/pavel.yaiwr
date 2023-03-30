@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use yaiwr::{err::InterpError, instruction::Instruction, Calc, scope::Scope};
+    use yaiwr::{err::InterpError, instruction::Instruction, scope::Scope, Calc};
 
     pub fn eval_prog(
         calc: &mut Calc,
@@ -280,11 +280,16 @@ mod tests {
     fn function_body_multiline_statements() {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
-        eval_prog(calc,  "fun do_some (){ 
+        eval_prog(
+            calc,
+            "fun do_some (){ 
             let _a = 2; 
             let _b = 2; 
             return _a + _b; 
-        }", scope).unwrap();
+        }",
+            scope,
+        )
+        .unwrap();
         assert_eq!(eval_prog(calc, "do_some();", scope).unwrap().unwrap(), 4);
     }
 
@@ -292,14 +297,19 @@ mod tests {
     fn function_body_multiline_function_calls() {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
-        eval_prog(calc,  "    
+        eval_prog(
+            calc,
+            "    
             fun add(_a, _b){ 
                 return _a + _b;
             }
             fun f1(_a, _b){ 
                 return add(_a, 10); + _b;
             }
-        ", scope).unwrap();
+        ",
+            scope,
+        )
+        .unwrap();
         assert_eq!(eval_prog(calc, "f1(1,2);", scope).unwrap().unwrap(), 13);
     }
 
@@ -307,7 +317,9 @@ mod tests {
     fn function_body_multiline_function_scope() {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
-        eval_prog(calc,  "    
+        eval_prog(
+            calc,
+            "    
             fun set_a(){ 
                 let _a = 10;
             }
@@ -315,7 +327,10 @@ mod tests {
                 set_a();
                 return _a;
             }
-        ", scope).unwrap();
+        ",
+            scope,
+        )
+        .unwrap();
         assert_eq!(eval_prog(calc, "f1(1);", scope).unwrap().unwrap(), 1);
     }
 }

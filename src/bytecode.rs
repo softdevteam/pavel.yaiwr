@@ -77,6 +77,5 @@ pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
             prog.push(Instruction::Assign { id })
         }
         AstNode::ID { value } => prog.push(Instruction::Load { id: value }),
-        AstNode::Empty => {}
     }
 }
