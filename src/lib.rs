@@ -39,7 +39,7 @@ impl Calc {
         self.stack.push(val);
     }
 
-    pub fn from_str(&self, input: &str) -> Result<AstNode, InterpError> {
+    pub fn from_str(&self, input: &str) -> Result<Vec<AstNode>, InterpError> {
         let lexer_def = calc_l::lexerdef();
         let lexer = lexer_def.lexer(input);
         let (ast_exp, errs) = calc_y::parse(&lexer);
@@ -69,10 +69,16 @@ impl Calc {
             .collect::<Vec<String>>();
         return msgs.join("\n");
     }
-    pub fn ast_to_bytecode(ast: AstNode) -> Vec<Instruction> {
-        let bytecode = &mut vec![];
-        to_bytecode(ast, bytecode);
-        bytecode.to_vec()
+    pub fn ast_to_bytecode(ast: Vec<AstNode>) -> Vec<Instruction> {
+        let bytecodes = &mut vec![];
+
+        for n in ast {
+            let bytecode = &mut vec![];
+            to_bytecode(n, bytecode);
+            bytecodes.append(bytecode);
+        }
+        ;
+        bytecodes.to_vec()
     }
 
     fn eval_function_args(

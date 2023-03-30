@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use yaiwr::{err::InterpError, instruction::Instruction, scope::Scope, Calc};
+    use yaiwr::{err::InterpError, instruction::Instruction, Calc, scope::Scope};
 
     pub fn eval_prog(
         calc: &mut Calc,

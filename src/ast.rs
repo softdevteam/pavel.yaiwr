@@ -33,4 +33,5 @@ pub enum AstNode {
     Return {
         block: Box<AstNode>,
     },
+    Empty
 }

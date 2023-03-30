@@ -1,13 +1,25 @@
-%start Expr
+%start Statements
 %expect-unused Unmatched "UNMATCHED"
 %%
+
+Statements -> Result<Vec<AstNode>, ()>:
+    Statements Expr { append($1.map_err(|_| ())?, $2.map_err(|_| ())?)  }
+  | { Ok(vec![]) }
+  ;
 
 Expr -> Result<AstNode, ()>:
     Expr "ADD" Term { Ok(AstNode::Add{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
     | Term { $1 } 
     | PrintLn { $1 }
     | AssigVar { $1 }
-    | FunctionDeclaration { $1 };
+    | FunctionDeclaration { $1 }
+    ;
+
+Term -> Result<AstNode, ()>:
+      Term 'MUL' CallableExpr { Ok(AstNode::Mul{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
+    | CallableExpr { $1 }
+    ;
+
 
 PrintLn -> Result<AstNode, ()>:
     "PRINT_LN" "(" Expr ")" ";" { Ok(AstNode::PrintLn{ rhs: Box::new($3?) }) };
@@ -19,9 +31,6 @@ AssigVar -> Result<AstNode, ()>:
         })
      };
 
-Term -> Result<AstNode, ()>:
-      Term 'MUL' CallableExpr { Ok(AstNode::Mul{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
-    | CallableExpr { $1 };
 
 Id -> Result<AstNode, ()>:
     "ID" { 
@@ -34,21 +43,21 @@ Integer -> Result<AstNode, ()>:
     "INTEGER" { parse_number($lexer.span_str(($1.map_err(|_| ())?).span())) };
 
 CallableExpr -> Result<AstNode, ()>:
-    "(" Expr ")" { $2 }
-    | Return { $1 }
+    Id { $1 }
     | Integer { $1 }
-    | Id { $1 }
-    | FunctionCall { $1 };
+    | FunctionCall { $1 }
+    | "(" Expr ")" { $2 }
+    | Statement { $1 }
+    ;
+
+Statement -> Result<AstNode, ()>:
+    Return { $1 };
 
 // Functions
 
 ParamList -> Result<Vec<AstNode>, ()>:
     ParamList ',' Id { append($1.map_err(|_| ())?, $3.map_err(|_| ())?) }
-    | Id {  Ok(vec![$1.map_err(|_| ())?]) };
-
-ArgList -> Result<Vec<AstNode>, ()>:
-    ArgList ',' Expr { append($1.map_err(|_| ())?, $3.map_err(|_| ())?) }
-    | Expr {  Ok(vec![$1.map_err(|_| ())?]) }
+    | Id {  Ok(vec![$1.map_err(|_| ())?]) }
     ;
 
 FunctionDeclaration -> Result<AstNode, ()>:
@@ -67,10 +76,16 @@ FunctionDeclaration -> Result<AstNode, ()>:
             params: $4.map_err(|_| ())?,
             block: Box::new($7?)
         }) 
-     };
+     }
+    ;
 
 Return -> Result<AstNode, ()>:
     "RETURN" Expr ";" { Ok(AstNode::Return{ block: Box::new($2?) }) };
+
+ArgList -> Result<Vec<AstNode>, ()>:
+    ArgList ',' Expr { append($1.map_err(|_| ())?, $3.map_err(|_| ())?) }
+    | Expr {  Ok(vec![$1.map_err(|_| ())?]) }
+    ;
 
 FunctionCallNoParams -> Result<AstNode, ()>:
     "ID" "(" ")" { 
