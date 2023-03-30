@@ -10,7 +10,7 @@ Statements -> Result<Vec<AstNode>, ()>:
 Expr -> Result<AstNode, ()>:
     Expr "ADD" Term { Ok(AstNode::Add{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
     | Term { $1 } 
-    | PrintLn { $1 }
+    | Builtins { $1 }
     | AssigVar { $1 }
     | FunctionDeclaration { $1 }
     ;
@@ -21,11 +21,11 @@ Term -> Result<AstNode, ()>:
     ;
 
 
-PrintLn -> Result<AstNode, ()>:
+Builtins -> Result<AstNode, ()>:
     "PRINT_LN" "(" Expr ")" ";" { Ok(AstNode::PrintLn{ rhs: Box::new($3?) }) };
 
 AssigVar -> Result<AstNode, ()>:
-    "ASSIGN" "ID" "=" Expr ";" { 
+    "ASSIGN" "T_VARIABLE" "=" Expr ";" { 
         Ok(AstNode::Assign { 
             id: $lexer.span_str(($2.map_err(|_| ())?).span()).to_string(), rhs: Box::new($4?) 
         })
@@ -33,7 +33,7 @@ AssigVar -> Result<AstNode, ()>:
 
 
 Id -> Result<AstNode, ()>:
-    "ID" { 
+    "T_VARIABLE" { 
         Ok(AstNode::ID { 
             value: $lexer.span_str(($1.map_err(|_| ())?).span()).to_string() 
         })
@@ -43,17 +43,14 @@ Integer -> Result<AstNode, ()>:
     "INTEGER" { parse_number($lexer.span_str(($1.map_err(|_| ())?).span())) };
 
 CallableExpr -> Result<AstNode, ()>:
-    Id { $1 }
+     "(" Expr ")" { $2 }
     | Integer { $1 }
     | FunctionCall { $1 }
-    | "(" Expr ")" { $2 }
-    | Statement { $1 }
+    | Id { $1 }
+    | Return { $1 }
     ;
 
-Statement -> Result<AstNode, ()>:
-    Return { $1 };
-
-// Functions
+// Function Declaration
 
 ParamList -> Result<Vec<AstNode>, ()>:
     ParamList ',' Id { append($1.map_err(|_| ())?, $3.map_err(|_| ())?) }
@@ -61,20 +58,21 @@ ParamList -> Result<Vec<AstNode>, ()>:
     ;
 
 FunctionDeclaration -> Result<AstNode, ()>:
-    "FUNCTION" "ID" "(" ")" "{" Expr "}" { 
+    "FUNCTION" "FUNC_ID" "(" ")" "{" Statements "}" { 
         let id = $2.map_err(|_| ())?;
         Ok(AstNode::Function{ 
             id: $lexer.span_str(id.span()).to_string(),
             params: vec![],
-            block: Box::new($6?)
+            block: $6?
         }) 
      }
-    | "FUNCTION" "ID" "(" ParamList ")" "{" Expr "}" { 
+    | 
+    "FUNCTION" "FUNC_ID" "(" ParamList ")" "{" Statements "}" { 
         let id = $2.map_err(|_| ())?;
         Ok(AstNode::Function{ 
             id: $lexer.span_str(id.span()).to_string(),
             params: $4.map_err(|_| ())?,
-            block: Box::new($7?)
+            block: $7?
         }) 
      }
     ;
@@ -82,32 +80,30 @@ FunctionDeclaration -> Result<AstNode, ()>:
 Return -> Result<AstNode, ()>:
     "RETURN" Expr ";" { Ok(AstNode::Return{ block: Box::new($2?) }) };
 
+// Function Call
+
 ArgList -> Result<Vec<AstNode>, ()>:
     ArgList ',' Expr { append($1.map_err(|_| ())?, $3.map_err(|_| ())?) }
     | Expr {  Ok(vec![$1.map_err(|_| ())?]) }
     ;
 
-FunctionCallNoParams -> Result<AstNode, ()>:
-    "ID" "(" ")" { 
+
+FunctionCall -> Result<AstNode, ()>:
+    "FUNC_ID" "(" ")" ";"{ 
         let id = $1.map_err(|_| ())?;
         Ok(AstNode::FunctionCall{ 
             id: $lexer.span_str(id.span()).to_string(),
             args: vec![]
         })
-    };
-
-FunctionCallWithParams -> Result<AstNode, ()>:
-    "ID" "(" ArgList ")" { 
+    }
+    | "FUNC_ID" "(" ArgList ")" ";" { 
         let id = $1.map_err(|_| ())?;
         Ok(AstNode::FunctionCall{ 
             id: $lexer.span_str(id.span()).to_string(),
             args: $3.map_err(|_| ())?
         })
-      };
-
-FunctionCall -> Result<AstNode, ()>:
-    FunctionCallNoParams { $1 }
-    | FunctionCallWithParams { $1 } ;
+      }
+    ;
 
 Unmatched -> ():
       "UNMATCHED" { };

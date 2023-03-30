@@ -16,9 +16,9 @@ mod tests {
     fn function_call_err() {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
-        eval_prog(calc, "fun _add1 (_p1){ return _p1 + 1; }", scope).unwrap();
+        eval_prog(calc, "fun add1 (_p1){ return _p1 + 1; }", scope).unwrap();
         assert_eq!(
-            eval_prog(calc, "_add1()", scope),
+            eval_prog(calc, "add1();", scope),
             Err(InterpError::EvalError(
                 "Unexpected number of function arguments. Expected: 1, Got: 0".to_string()
             ))
@@ -30,8 +30,8 @@ mod tests {
         let scope = &mut Scope::new();
         let calc = &mut Calc::new();
         assert_eq!(
-            eval_prog(calc, "_add1()", scope),
-            Err(InterpError::UndefinedFunction("_add1".to_string()))
+            eval_prog(calc, "add1();", scope),
+            Err(InterpError::UndefinedFunction("add1".to_string()))
         );
     }
 
@@ -39,10 +39,10 @@ mod tests {
     fn function_composition() {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
-        eval_prog(calc, "fun _add1 (_p1){ return _p1 + 1; }", scope).unwrap();
-        eval_prog(calc, "fun _add2 (_p1){ return _p1 + 2; }", scope).unwrap();
+        eval_prog(calc, "fun add1 (_p1){ return _p1 + 1; }", scope).unwrap();
+        eval_prog(calc, "fun add2 (_p1){ return _p1 + 2; }", scope).unwrap();
         assert_eq!(
-            eval_prog(calc, "_add2(_add1(1))", scope).unwrap().unwrap(),
+            eval_prog(calc, "add2(add1(1););", scope).unwrap().unwrap(),
             4
         );
     }
@@ -53,11 +53,11 @@ mod tests {
         let calc = &mut Calc::new();
         eval_prog(
             calc,
-            "fun _add (_p1, _p2, _p3){ return _p1 + _p2 +_p3; }",
+            "fun add (_p1, _p2, _p3){ return _p1 + _p2 +_p3; }",
             scope,
         )
         .unwrap();
-        assert_eq!(eval_prog(calc, "_add(1,2,3)", scope).unwrap().unwrap(), 6);
+        assert_eq!(eval_prog(calc, "add(1,2,3);", scope).unwrap().unwrap(), 6);
     }
 
     #[test]
@@ -68,33 +68,17 @@ mod tests {
         eval_prog(calc, "let _y = 3;", scope).unwrap();
         eval_prog(
             calc,
-            "fun _add (_arg1, _arg2){ return _arg1 + _arg2; }",
+            "fun add (_arg1, _arg2){ return _arg1 + _arg2; }",
             scope,
         )
         .unwrap();
-        assert_eq!(eval_prog(calc, "_add(_x, _y)", scope).unwrap().unwrap(), 5);
-    }
-
-    #[test]
-    fn function_call_from_function_call() {
-        let scope = &mut Scope::new();
-        let calc = &mut Calc::new();
-        eval_prog(calc, "let _x = 2;", scope).unwrap();
-        eval_prog(calc, "let _y = 3;", scope).unwrap();
-        eval_prog(
-            calc,
-            "fun _add (_arg1, _arg2){ return _id(_arg1) + _id(_arg2); }",
-            scope,
-        )
-        .unwrap();
-        eval_prog(calc, "fun _id (_arg1){ return _arg1; }", scope).unwrap();
-        assert_eq!(eval_prog(calc, "_add(_x, _y)", scope).unwrap().unwrap(), 5);
+        assert_eq!(eval_prog(calc, "add(_x, _y);", scope).unwrap().unwrap(), 5);
     }
 
     #[test]
     fn function_declaration_no_params_bytecode() {
         let calc = &mut Calc::new();
-        let prog1 = "fun _some (){ return 2*2; }";
+        let prog1 = "fun some (){ return 2*2; }";
         let ast = calc.from_str(prog1).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
         calc.eval(&func_declare_bc, &mut Scope::new()).unwrap();
@@ -103,7 +87,7 @@ mod tests {
                 assert_eq!(
                     first,
                     &Instruction::Function {
-                        id: "_some".to_string(),
+                        id: "some".to_string(),
                         params: vec![],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -122,7 +106,7 @@ mod tests {
     #[test]
     fn function_declaration_with_params_bytecode() {
         let calc = &mut Calc::new();
-        let prog = "fun _add (_p1, _p2){ return _p1 + _p2 + 1; }";
+        let prog = "fun add (_p1, _p2){ return _p1 + _p2 + 1; }";
         let ast = calc.from_str(prog).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
         calc.eval(&func_declare_bc, &mut Scope::new()).unwrap();
@@ -131,7 +115,7 @@ mod tests {
                 assert_eq!(
                     first,
                     &Instruction::Function {
-                        id: "_add".to_string(),
+                        id: "add".to_string(),
                         params: vec!["_p1".to_string(), "_p2".to_string()],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -156,7 +140,7 @@ mod tests {
     #[test]
     fn function_declaration_with_params_call_bytecode() {
         let calc = &mut Calc::new();
-        let prog_func_declaration = "fun _add (_p1, _p2){ return _p1 + _p2; }";
+        let prog_func_declaration = "fun add (_p1, _p2){ return _p1 + _p2; }";
         let ast = calc.from_str(prog_func_declaration).unwrap();
         let func_declaration_bc = Calc::ast_to_bytecode(ast);
         calc.eval(&func_declaration_bc, &mut Scope::new()).unwrap();
@@ -165,7 +149,7 @@ mod tests {
                 assert_eq!(
                     first,
                     &Instruction::Function {
-                        id: "_add".to_string(),
+                        id: "add".to_string(),
                         params: vec!["_p1".to_string(), "_p2".to_string()],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -184,7 +168,7 @@ mod tests {
             _ => panic!("expected bytecodes to be not empty!"),
         }
 
-        let prog_func_call = "_add(1,2)";
+        let prog_func_call = "add(1,2);";
         let ast = calc.from_str(prog_func_call).unwrap();
         let func_call_bc = Calc::ast_to_bytecode(ast);
         calc.eval(&func_call_bc, &mut Scope::new()).unwrap();
@@ -193,7 +177,7 @@ mod tests {
                 assert_eq!(
                     first,
                     &Instruction::FunctionCall {
-                        id: "_add".to_string(),
+                        id: "add".to_string(),
                         args: vec![
                             vec![Instruction::Push { value: 1 }],
                             vec![Instruction::Push { value: 2 }],
@@ -208,7 +192,7 @@ mod tests {
     #[test]
     fn function_declaration_no_params_call_bytecode() {
         let calc = &mut Calc::new();
-        let prog_func_declaration = "fun _two_plus_two (){ return (2+2); }";
+        let prog_func_declaration = "fun two_plus_two (){ return (2+2); }";
         let ast = calc.from_str(prog_func_declaration).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
         calc.eval(&func_declare_bc, &mut Scope::new()).unwrap();
@@ -217,7 +201,7 @@ mod tests {
                 assert_eq!(
                     first,
                     &Instruction::Function {
-                        id: "_two_plus_two".to_string(),
+                        id: "two_plus_two".to_string(),
                         params: vec![],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -231,7 +215,7 @@ mod tests {
             }
             _ => panic!("expected bytecodes to be not empty!"),
         }
-        let prog_func_call = "_two_plus_two()";
+        let prog_func_call = "two_plus_two();";
         let ast = calc.from_str(prog_func_call).unwrap();
         let func_call_bc = Calc::ast_to_bytecode(ast);
         calc.eval(&func_call_bc, &mut Scope::new()).unwrap();
@@ -240,7 +224,7 @@ mod tests {
                 assert_eq!(
                     first,
                     &Instruction::FunctionCall {
-                        id: "_two_plus_two".to_string(),
+                        id: "two_plus_two".to_string(),
                         args: vec![]
                     }
                 );
@@ -266,18 +250,18 @@ mod tests {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
         eval_prog(calc, "let _outter_var = 666;", scope).unwrap();
-        eval_prog(calc, "fun _add1 (){ return _outter_var + 1; }", scope).unwrap();
-        assert_eq!(eval_prog(calc, "_add1()", scope).unwrap().unwrap(), 667);
+        eval_prog(calc, "fun add1 (){ return _outter_var + 1; }", scope).unwrap();
+        assert_eq!(eval_prog(calc, "add1();", scope).unwrap().unwrap(), 667);
     }
 
     #[test]
     fn function_scope_variables_not_leaking() {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
-        eval_prog(calc, "fun _f1 (){ let _a = 1; }", scope).unwrap();
-        eval_prog(calc, "fun _f2 (){ return _a + 1; }", scope).unwrap();
+        eval_prog(calc, "fun f1 (){ let _a = 1; }", scope).unwrap();
+        eval_prog(calc, "fun f2 (){ return _a + 1; }", scope).unwrap();
         assert_eq!(
-            eval_prog(calc, "_f2()", scope),
+            eval_prog(calc, "f2();", scope),
             Err(InterpError::VariableNotFound("_a".to_string()))
         );
     }
@@ -287,8 +271,51 @@ mod tests {
         let calc = &mut Calc::new();
         let scope = &mut Scope::new();
         eval_prog(calc, "let _a = 1;", scope).unwrap();
-        eval_prog(calc, "fun _f1 (){ return _a; }", scope).unwrap();
-        eval_prog(calc, "fun _f2 (){ return _f1() + _a; }", scope).unwrap();
-        assert_eq!(eval_prog(calc, "_f2()", scope).unwrap().unwrap(), 2);
+        eval_prog(calc, "fun f1 (){ return _a; }", scope).unwrap();
+        eval_prog(calc, "fun f2 (){ return f1(); + _a; }", scope).unwrap();
+        assert_eq!(eval_prog(calc, "f2();", scope).unwrap().unwrap(), 2);
+    }
+
+    #[test]
+    fn function_body_multiline_statements() {
+        let calc = &mut Calc::new();
+        let scope = &mut Scope::new();
+        eval_prog(calc,  "fun do_some (){ 
+            let _a = 2; 
+            let _b = 2; 
+            return _a + _b; 
+        }", scope).unwrap();
+        assert_eq!(eval_prog(calc, "do_some();", scope).unwrap().unwrap(), 4);
+    }
+
+    #[test]
+    fn function_body_multiline_function_calls() {
+        let calc = &mut Calc::new();
+        let scope = &mut Scope::new();
+        eval_prog(calc,  "    
+            fun add(_a, _b){ 
+                return _a + _b;
+            }
+            fun f1(_a, _b){ 
+                return add(_a, 10); + _b;
+            }
+        ", scope).unwrap();
+        assert_eq!(eval_prog(calc, "f1(1,2);", scope).unwrap().unwrap(), 13);
+    }
+
+    #[test]
+    fn function_body_multiline_function_scope() {
+        let calc = &mut Calc::new();
+        let scope = &mut Scope::new();
+        eval_prog(calc,  "    
+            fun set_a(){ 
+                let _a = 10;
+            }
+            fun f1(_a){ 
+                set_a();
+                return _a;
+            }
+        ", scope).unwrap();
+        assert_eq!(eval_prog(calc, "f1(1);", scope).unwrap().unwrap(), 1);
     }
 }

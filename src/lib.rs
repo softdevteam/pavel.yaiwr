@@ -77,7 +77,6 @@ impl Calc {
             to_bytecode(n, bytecode);
             bytecodes.append(bytecode);
         }
-        ;
         bytecodes.to_vec()
     }
 

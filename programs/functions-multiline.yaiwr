@@ -1,0 +1,10 @@
+fun add1(_a){ 
+    return _a + 1;
+}
+
+fun f1(_a, _b){ 
+    add1(_a);
+    println(_a + _b);
+}
+
+f1(1,2);
