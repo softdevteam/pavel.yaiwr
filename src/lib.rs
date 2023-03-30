@@ -1,4 +1,4 @@
-use bytecode::{block_to_bytecode};
+use bytecode::block_to_bytecode;
 use instruction::Instruction;
 use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
@@ -71,7 +71,7 @@ impl Calc {
     }
 
     pub fn ast_to_bytecode(ast: Vec<AstNode>) -> Vec<Instruction> {
-        return block_to_bytecode(ast)
+        return block_to_bytecode(ast);
     }
 
     fn eval_function_args(

@@ -23,7 +23,7 @@ fn function_ast_params_to_vec(params: Vec<AstNode>) -> Vec<String> {
     return bytecode;
 }
 
-pub fn block_to_bytecode(block: Vec<AstNode>) -> Vec<Instruction>{
+pub fn block_to_bytecode(block: Vec<AstNode>) -> Vec<Instruction> {
     let bytecodes = &mut vec![];
     for n in block {
         let bytecode = &mut vec![];
@@ -39,7 +39,6 @@ fn function_declaration(
     block: Vec<AstNode>,
     prog: &mut Vec<Instruction>,
 ) {
-
     let parsed_params = function_ast_params_to_vec(params);
     prog.push(Instruction::Function {
         id,
