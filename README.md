@@ -108,7 +108,11 @@ fun <name> (<params>) { <statements> }
 
 Example:
 ```
-"fun _add (_arg1, _arg2){ return _arg1 + _arg2; }
+fun _add (_arg1, _arg2){ return _arg1 + _arg2; }
+
+fun _add1 (_arg1){ 
+  return _arg1 + 1; 
+}
 ```
 #### Function calls
 
