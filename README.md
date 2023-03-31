@@ -165,6 +165,28 @@ _add(1,2)
 
 **Stack-based machines** - Stack for operands and operators, the result is always on top of the stack
 
+# YAIWR architecture overview
+
+```mermaid
+sequenceDiagram
+    Program->>+VM: Evaluate
+    note right of VM: Defined in calc.rs
+    note right of Lexer: Defined in calc.l
+    VM->>+Lexer: Lexical analysis 
+    Lexer-->>-VM: Lexemes
+    VM->>+Parser: Parse Lexemes
+        note right of Lexer: Defined in calc.y
+    Parser-->>-VM: AST
+    VM->>Bytecode: Parse AST to bytecode
+    loop foreach AST node
+        Bytecode->>+Bytecode: Convert to Instruction
+    end
+    Bytecode-->>-VM: Bytecode Instructions
+    loop foreach instuction
+        VM->>+VM: Evaluate instuction
+    end
+
+```
 
 # Resources
 
