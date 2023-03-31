@@ -121,6 +121,26 @@ Example:
 _add(1,2)
 ```
 
+#### Function Scope
+
+- Variables declared within a function, become "local" to the function.
+- Variables declared in the outer scope of a function are accessible by the "local" function  context
+
+Example:
+```
+let _g = 0;
+// code here can't use "_a" variable
+
+fun _best_fun() {
+  // code here can use "_g" variable
+  let _a = 2;
+  // code here can use "_a" variable
+}
+
+// code here can't use "_a" variable
+
+```
+
 # TODOs
 
 [x] Go through the calc example in the quick start guide
@@ -142,6 +162,8 @@ _add(1,2)
 [x] Propogate all errors to top-level where the error is printed
 
 [x] Add support for custom error handling, i.e InterpError
+
+[x] Implement function scope
 
 [ ] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
 
