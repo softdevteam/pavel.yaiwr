@@ -185,7 +185,6 @@ sequenceDiagram
     loop foreach instuction
         VM->>+VM: Evaluate instuction
     end
-
 ```
 
 # Resources
