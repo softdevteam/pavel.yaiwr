@@ -1,4 +1,4 @@
-use bytecode::to_bytecode;
+use bytecode::block_to_bytecode;
 use instruction::Instruction;
 use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
@@ -39,7 +39,7 @@ impl Calc {
         self.stack.push(val);
     }
 
-    pub fn from_str(&self, input: &str) -> Result<AstNode, InterpError> {
+    pub fn from_str(&self, input: &str) -> Result<Vec<AstNode>, InterpError> {
         let lexer_def = calc_l::lexerdef();
         let lexer = lexer_def.lexer(input);
         let (ast_exp, errs) = calc_y::parse(&lexer);
@@ -69,10 +69,9 @@ impl Calc {
             .collect::<Vec<String>>();
         return msgs.join("\n");
     }
-    pub fn ast_to_bytecode(ast: AstNode) -> Vec<Instruction> {
-        let bytecode = &mut vec![];
-        to_bytecode(ast, bytecode);
-        bytecode.to_vec()
+
+    pub fn ast_to_bytecode(ast: Vec<AstNode>) -> Vec<Instruction> {
+        return block_to_bytecode(ast);
     }
 
     fn eval_function_args(
