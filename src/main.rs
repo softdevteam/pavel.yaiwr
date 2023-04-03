@@ -70,35 +70,23 @@ fn eval_statement(
     calc: &mut Calc,
     scope: &mut Scope,
 ) -> Result<Option<u64>, InterpError> {
-    // TODO: add back support for multi-line statments
-    let statements: Vec<&str> = input.split("\n").collect();
+    debug!("statement: {:?}", &input);
+    let ast = calc.from_str(input);
+    match ast {
+        Ok(ast_node) => {
+            debug!("AST: {:?}", &ast_node);
+            let bytecode = Calc::ast_to_bytecode(ast_node);
 
-    let mut result = None;
-    for statement in statements {
-        if statement == "" {
-            continue;
-        }
-        debug!("statement: {:?}", &statement);
-        let ast = calc.from_str(statement);
-        match ast {
-            Ok(ast_node) => {
-                debug!("AST: {:?}", &ast_node);
-                let bytecode = Calc::ast_to_bytecode(ast_node);
-
-                debug!("Bytecode: {:?}", &bytecode);
-                match calc.eval(&bytecode, scope) {
-                    Ok(eval_result) => {
-                        result = eval_result;
-                    }
-                    Err(e) => {
-                        return Err(e);
-                    }
+            debug!("Bytecode: {:?}", &bytecode);
+            match calc.eval(&bytecode, scope) {
+                Ok(eval_result) => return Ok(eval_result),
+                Err(e) => {
+                    return Err(e);
                 }
             }
-            Err(e) => {
-                return Err(e);
-            }
+        }
+        Err(e) => {
+            return Err(e);
         }
     }
-    return Ok(result);
 }

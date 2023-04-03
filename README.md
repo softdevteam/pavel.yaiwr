@@ -108,7 +108,11 @@ fun <name> (<params>) { <statements> }
 
 Example:
 ```
-"fun _add (_arg1, _arg2){ return _arg1 + _arg2; }
+fun _add (_arg1, _arg2){ return _arg1 + _arg2; }
+
+fun _add1 (_arg1){ 
+  return _arg1 + 1; 
+}
 ```
 #### Function calls
 
@@ -165,7 +169,9 @@ fun _best_fun() {
 
 [x] Implement function scope
 
-[ ] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
+[x] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
+
+[ ] Allow function calls without `;`, for example: `add1(add1(1))` instead of `add1(add1(1););`
 
 [ ] Compile variable names to integers
 
