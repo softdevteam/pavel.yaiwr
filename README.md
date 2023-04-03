@@ -54,6 +54,25 @@ $ run_docker_ci_job # optional (--prune)
 
 ## Langugage Spec(ish)
 
+### Comments
+
+YAIWR comments can be used to explain the YAIWR code. 
+YAIWR comments can be used to prevent execution when testing alternative code.
+
+Convention:
+
+1. Single-line comments should start with `//`
+2. No multi-line comment supported
+
+Example:
+
+```
+let _a = 4; // let _a = 5;
+// let _a = 5;
+println(_a);
+```
+In this example, the output will be `4`.
+
 ### Statements
 
 `println` - Prints to the standard output, with a new line
@@ -171,6 +190,8 @@ fun f() {
 
 [x] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
 
+[x] Add comments support
+
 [ ] Allow function calls without `;`, for example: `add1(add1(1))` instead of `add1(add1(1););`
 
 [ ] Compile variable names to integers
@@ -182,6 +203,8 @@ fun f() {
 [ ] Benchmarking
 
 [ ] Revise Rust in general :)
+
+[ ] Add multi-line comments support. See previous PR attempt: https://github.com/softdevteam/pavel.yaiwr/pull/22.
 
 # Terminology
 

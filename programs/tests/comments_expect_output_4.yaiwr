@@ -1,0 +1,3 @@
+let __zzzzzzz = 4;   // let __zzzzzzz = 100;
+// Should be ignored!
+println(__zzzzzzz);
