@@ -3,6 +3,7 @@ use instruction::Instruction;
 use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
+use scope::Scope;
 use std::collections::HashMap;
 
 lrlex_mod!("calc.l");
@@ -12,30 +13,22 @@ pub mod ast;
 pub mod bytecode;
 pub mod err;
 pub mod instruction;
+pub mod scope;
 
 use ast::AstNode;
 use err::InterpError;
 
 pub struct Calc {
-    var_store: HashMap<String, u64>,
     fun_store: HashMap<String, Instruction>,
     stack: Vec<u64>,
 }
 
 impl Calc {
-    pub fn new() -> Calc {
+    pub fn new() -> Self {
         Calc {
-            var_store: HashMap::new(),
             fun_store: HashMap::new(),
             stack: vec![],
         }
-    }
-
-    pub fn get_var(&self, id: String) -> Result<&u64, InterpError> {
-        return self
-            .var_store
-            .get(&id)
-            .ok_or(InterpError::VariableNotFound(id));
     }
 
     pub fn stack_pop(&mut self) -> Result<u64, InterpError> {
@@ -85,10 +78,11 @@ impl Calc {
     fn eval_function_args(
         &mut self,
         args: &Vec<Vec<Instruction>>,
+        scope: &mut Scope,
     ) -> Result<Vec<u64>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
-            match self.eval(arg_set) {
+            match self.eval(arg_set, scope) {
                 Ok(Some(x)) => result.push(x),
                 Ok(None) => {}
                 Err(e) => return Err(e),
@@ -101,6 +95,7 @@ impl Calc {
         &mut self,
         args: &Vec<u64>,
         id: &String,
+        outer_scope: &mut Scope,
     ) -> Result<Option<u64>, InterpError> {
         let function = self
             .fun_store
@@ -119,11 +114,9 @@ impl Calc {
                         args.len()
                     )));
                 }
-                // TODO: Implement function scope/stack based variables
-                for (i, p) in params.iter().enumerate() {
-                    self.var_store.insert(p.to_string(), args[i]);
-                }
-                return self.eval(&body.clone());
+                let func_scope = &mut Scope::from_scope(outer_scope);
+                func_scope.assign(HashMap::from_iter(params.iter().zip(args)));
+                return self.eval(&body.clone(), func_scope);
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -133,12 +126,16 @@ impl Calc {
         }
     }
 
-    pub fn eval(&mut self, instructions: &Vec<Instruction>) -> Result<Option<u64>, InterpError> {
+    pub fn eval(
+        &mut self,
+        instructions: &Vec<Instruction>,
+        scope: &mut Scope,
+    ) -> Result<Option<u64>, InterpError> {
         for instruction in instructions {
-            debug!("eval: {:?}", instruction);
+            debug!("eval: {:?}. scope: {:?}", instruction, scope);
             match instruction {
                 Instruction::Return { block } => {
-                    let val = self.eval(block)?;
+                    let val = self.eval(block, scope)?;
                     if let Some(x) = val {
                         self.stack_push(x);
                     }
@@ -165,8 +162,8 @@ impl Calc {
                     }
                 }
                 Instruction::FunctionCall { id, args } => {
-                    let arg_list = self.eval_function_args(&args)?;
-                    let res = self.eval_function_call(&arg_list, id)?;
+                    let arg_list = self.eval_function_args(&args, scope)?;
+                    let res = self.eval_function_call(&arg_list, id, scope)?;
                     if let Some(x) = res {
                         self.stack_push(x);
                     }
@@ -191,10 +188,11 @@ impl Calc {
                 }
                 Instruction::Assign { id } => {
                     let val = self.stack_pop()?;
-                    self.var_store.insert(id.to_string(), val);
+                    scope.var_store.insert(id.to_string(), val);
                 }
                 Instruction::Load { id } => {
-                    self.stack_push(*self.get_var(id.into())?);
+                    let val = scope.get_var(id)?;
+                    self.stack_push(*val);
                 }
             }
         }

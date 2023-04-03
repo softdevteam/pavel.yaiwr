@@ -1,26 +1,26 @@
 #[cfg(test)]
 mod tests {
-    use yaiwr::{instruction::Instruction, Calc};
+    use yaiwr::{instruction::Instruction, scope::Scope, Calc};
 
     #[test]
     fn eval_println_statement_add() {
-        let mut c = Calc::new();
-        let ast = c.from_str("println(2+2);").unwrap();
+        let calc = &mut Calc::new();
+        let ast = calc.from_str("println(2+2);").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        assert_eq!(c.eval(&bytecode).unwrap(), None);
+        assert_eq!(calc.eval(&bytecode, &mut Scope::new()).unwrap(), None);
     }
 
     #[test]
     fn eval_println_statement_mul() {
-        let mut c = Calc::new();
-        let ast = c.from_str("println(2*2);").unwrap();
+        let calc = &mut Calc::new();
+        let ast = calc.from_str("println(2*2);").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        assert_eq!(c.eval(&bytecode).unwrap(), None);
+        assert_eq!(calc.eval(&bytecode, &mut Scope::new()).unwrap(), None);
     }
 
     #[test]
     fn println_statement_numeric_bytecode() {
-        let calc = Calc::new();
+        let calc = &mut Calc::new();
         let ast = calc.from_str("println(1);").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
@@ -34,7 +34,7 @@ mod tests {
 
     #[test]
     fn print_statement_add_bytecode() {
-        let calc = Calc::new();
+        let calc = &mut Calc::new();
         let ast = calc.from_str("println (1+1);").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
@@ -51,18 +51,18 @@ mod tests {
     #[test]
     #[should_panic]
     fn eval_println_statement_add_parsing_error() {
-        let mut c = Calc::new();
-        let ast = c.from_str("println 2+2").unwrap();
+        let calc = &mut Calc::new();
+        let ast = calc.from_str("println 2+2").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        assert_eq!(c.eval(&bytecode).unwrap(), None);
+        assert_eq!(calc.eval(&bytecode, &mut Scope::new()).unwrap(), None);
     }
     #[test]
     #[should_panic]
     fn eval_println_statement_mul_parsing_error() {
-        let mut c = Calc::new();
-        let ast = c.from_str("println 2*2").unwrap();
+        let calc = &mut Calc::new();
+        let ast = calc.from_str("println 2*2").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        assert_eq!(c.eval(&bytecode).unwrap(), None);
+        assert_eq!(calc.eval(&bytecode, &mut Scope::new()).unwrap(), None);
     }
 
     #[test]
