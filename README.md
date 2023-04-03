@@ -100,7 +100,7 @@ fun <name> (<params>) { <statements> }
 
 `<fun>` - keyword indicating the beginning of a function declaration
 
-`<name>` - Same as variable names
+`<name>` - any alphanumeric sequence
 
 `<params>` - (optional) single or list of parameters passed to the function
 
@@ -108,7 +108,11 @@ fun <name> (<params>) { <statements> }
 
 Example:
 ```
-"fun _add (_arg1, _arg2){ return _arg1 + _arg2; }
+fun add (_arg1, _arg2){ return _arg1 + _arg2; }
+
+fun add1 (_arg1){ 
+  return _arg1 + 1; 
+}
 ```
 #### Function calls
 
@@ -118,7 +122,7 @@ Example:
 
 Example:
 ```
-_add(1,2)
+add(1,2)
 ```
 
 #### Function Scope
@@ -131,7 +135,7 @@ Example:
 let _g = 0;
 // code here can't use "_a" variable
 
-fun _best_fun() {
+fun f() {
   // code here can use "_g" variable
   let _a = 2;
   // code here can use "_a" variable
@@ -165,7 +169,9 @@ fun _best_fun() {
 
 [x] Implement function scope
 
-[ ] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
+[x] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
+
+[ ] Allow function calls without `;`, for example: `add1(add1(1))` instead of `add1(add1(1););`
 
 [ ] Compile variable names to integers
 
