@@ -1,5 +1,5 @@
 use bytecode::block_to_bytecode;
-use instruction::Instruction;
+use instruction::{BinaryOp, Instruction, StackValue};
 use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
@@ -20,7 +20,7 @@ use err::InterpError;
 
 pub struct Calc {
     fun_store: HashMap<String, Instruction>,
-    stack: Vec<u64>,
+    stack: Vec<StackValue>,
 }
 
 impl Calc {
@@ -31,11 +31,11 @@ impl Calc {
         }
     }
 
-    pub fn stack_pop(&mut self) -> Result<u64, InterpError> {
+    pub fn stack_pop(&mut self) -> Result<StackValue, InterpError> {
         return Ok(self.stack.pop().ok_or(InterpError::EmptyStack)?);
     }
 
-    pub fn stack_push(&mut self, val: u64) {
+    pub fn stack_push(&mut self, val: StackValue) {
         self.stack.push(val);
     }
 
@@ -78,7 +78,7 @@ impl Calc {
         &mut self,
         args: &Vec<Vec<Instruction>>,
         scope: &mut Scope,
-    ) -> Result<Vec<u64>, InterpError> {
+    ) -> Result<Vec<StackValue>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
             match self.eval(arg_set, scope) {
@@ -92,10 +92,10 @@ impl Calc {
 
     fn eval_function_call(
         &mut self,
-        args: &Vec<u64>,
+        args: &Vec<StackValue>,
         id: &String,
         outer_scope: &mut Scope,
-    ) -> Result<Option<u64>, InterpError> {
+    ) -> Result<Option<StackValue>, InterpError> {
         let function = self
             .fun_store
             .get(id)
@@ -125,11 +125,53 @@ impl Calc {
         }
     }
 
+    fn eval_binary_op(
+        &mut self,
+        op: &BinaryOp,
+        scope: &mut Scope,
+    ) -> Result<Option<StackValue>, InterpError> {
+        let val = match op {
+            BinaryOp::LessThan => {
+                let op1 = self.stack_pop()?.as_int()?;
+                let op2 = self.stack_pop()?.as_int()?;
+                StackValue::Boolean(op2 < op1)
+            }
+            BinaryOp::GreaterThan => {
+                let op1 = self.stack_pop()?.as_int()?;
+                let op2 = self.stack_pop()?.as_int()?;
+                StackValue::Boolean(op1 < op2)
+            }
+            BinaryOp::Add => {
+                let op1 = self.stack_pop()?.as_int()?;
+                let op2 = self.stack_pop()?.as_int()?;
+                StackValue::Integer(
+                    op1.checked_add(op2)
+                        .ok_or(InterpError::Numeric("overflowed".to_string()))?,
+                )
+            }
+            BinaryOp::Mul => {
+                let op1 = self.stack_pop()?.as_int()?;
+                let op2 = self.stack_pop()?.as_int()?;
+                StackValue::Integer(
+                    op1.checked_mul(op2)
+                        .ok_or(InterpError::Numeric("overflowed".to_string()))?,
+                )
+            }
+            BinaryOp::Assign { id } => {
+                let val = self.stack_pop()?;
+                scope.var_store.insert(id.to_string(), val);
+                val
+            }
+        };
+        self.stack_push(val);
+        Ok(Some(val))
+    }
+
     pub fn eval(
         &mut self,
         instructions: &Vec<Instruction>,
         scope: &mut Scope,
-    ) -> Result<Option<u64>, InterpError> {
+    ) -> Result<Option<StackValue>, InterpError> {
         for instruction in instructions {
             debug!("eval: {:?}. scope: {:?}", instruction, scope);
             match instruction {
@@ -171,27 +213,12 @@ impl Calc {
                 Instruction::PrintLn => {
                     println!("{}", self.stack.pop().unwrap());
                 }
-                Instruction::Mul {} => {
-                    let val = self
-                        .stack_pop()?
-                        .checked_mul(self.stack_pop()?)
-                        .ok_or(InterpError::Numeric("overflowed".to_string()))?;
-                    self.stack_push(val);
-                }
-                Instruction::Add {} => {
-                    let val = self
-                        .stack_pop()?
-                        .checked_add(self.stack_pop()?)
-                        .ok_or(InterpError::Numeric("overflowed".to_string()))?;
-                    self.stack_push(val);
-                }
-                Instruction::Assign { id } => {
-                    let val = self.stack_pop()?;
-                    scope.var_store.insert(id.to_string(), val);
-                }
                 Instruction::Load { id } => {
                     let val = scope.get_var(id)?;
                     self.stack_push(*val);
+                }
+                Instruction::BinaryOp { op } => {
+                    self.eval_binary_op(op, scope)?;
                 }
             }
         }
