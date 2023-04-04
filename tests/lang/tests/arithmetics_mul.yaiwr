@@ -1,0 +1,4 @@
+// Run-time:
+//   stdout: 27
+
+println((1+2)*(3*3));

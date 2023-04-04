@@ -48,6 +48,8 @@ env_logger crate [docs](https://docs.rs/env_logger/0.10.0/env_logger/)
 ```shell
 # run unit tests
 $ cargo test
+# run language unit tests
+$ cargo test --test lang
 # run test in a container
 $ run_docker_ci_job # optional (--prune)
 ```
@@ -61,7 +63,7 @@ YAIWR comments can be used to prevent execution when testing alternative code.
 
 Convention:
 
-1. Single-line comments should start with `//`
+1. Single line comments should start with `//`
 2. No multi-line comment supported
 
 Example:
@@ -191,6 +193,8 @@ fun f() {
 [x] Multi-line statements support as it was intended in https://github.com/softdevteam/pavel.yaiwr/pull/17
 
 [x] Add comments support
+
+[x] Integrate lang_tester https://lib.rs/crates/lang_tester
 
 [ ] Allow function calls without `;`, for example: `add1(add1(1))` instead of `add1(add1(1););`
 
