@@ -19,7 +19,7 @@ mod tests {
     }
 
     #[test]
-    fn mul_bytecode() {
+    fn mul_bc() {
         let calc = &mut Calc::new();
         let ast = calc.from_str("1*2").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);

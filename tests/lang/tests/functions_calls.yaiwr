@@ -1,0 +1,6 @@
+// Run-time:
+//   stdout: 2023
+
+fun double(_a){ return (_a * 2); }
+fun add(_a, _b){ return (_a + _b); }
+println(add(double(1000);, 23););

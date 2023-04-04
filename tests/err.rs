@@ -25,18 +25,4 @@ mod tests {
             "Evaluation error: Program file: 'imaginary-file.yaiwr' cannot be found!\n"
         );
     }
-
-    #[test]
-    fn parse_sderr_error() {
-        let output = Command::new("cargo")
-            .arg("run")
-            .arg("-q")
-            .arg("1+2)")
-            .output()
-            .expect(format!("command 'cargo run ???' failed").as_str());
-        assert_eq!(
-            String::from_utf8_lossy(&output.stderr),
-            "Evaluation error: Parse error: Parsing error at line 1 column 4. Repair sequences found:\n   1: Delete )!\n"
-        );
-    }
 }

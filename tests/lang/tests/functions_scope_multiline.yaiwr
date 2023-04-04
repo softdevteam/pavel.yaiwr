@@ -1,0 +1,13 @@
+// Run-time:
+//   stdout: 1
+
+fun set_a(){ 
+    let _a = 10;
+}
+
+fun f1(_a){ 
+    set_a();
+    return _a;
+}
+
+println(f1(1););

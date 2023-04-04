@@ -1,0 +1,4 @@
+// Run-time:
+//   stdout: 6
+
+let _a = 2; let _b = 4; println(_a + _b);

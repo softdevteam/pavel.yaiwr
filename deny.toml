@@ -7,4 +7,5 @@ allow = [
     "MIT",
     "Unicode-DFS-2016",
     "Unlicense",
+    "BSD-3-Clause"
 ]

@@ -1,0 +1,6 @@
+// Run-time:
+//   stdout: 17
+
+let _a = 2 + 2;
+let _b = 2 * 3;
+println(_a + _b + (4+3));

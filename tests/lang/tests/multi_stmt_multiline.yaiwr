@@ -1,0 +1,17 @@
+// Run-time:
+//   stdout: 25
+
+fun dd(){ 
+    let _a = 10;
+    let _b = 2;
+    return (_a * _b + 4);
+}
+
+fun add(_a, _b){ 
+    return (_a + _b); 
+}
+
+let _dd = dd();;
+
+let _added = add(_dd, 1);;
+println(_added);

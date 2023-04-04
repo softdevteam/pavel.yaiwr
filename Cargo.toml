@@ -19,3 +19,12 @@ lrlex = "0.13.1"
 lrpar = "0.13.1"
 log = "0.4.0"
 env_logger = "0.10.0"
+
+[dev-dependencies]
+tempfile = "3"
+lang_tester = "0.7.2"
+
+[[test]]
+name = "lang"
+path = "tests/lang/run.rs"
+harness = false
