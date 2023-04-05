@@ -1,4 +1,7 @@
-use crate::{ast::AstNode, instruction::Instruction};
+use crate::{
+    ast::AstNode,
+    instruction::{BinaryOp, Instruction, StackValue},
+};
 
 fn function_call(id: String, args: Vec<AstNode>, prog: &mut Vec<Instruction>) {
     let mut args_bytecode = vec![];
@@ -61,22 +64,43 @@ pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
         AstNode::Add { lhs, rhs } => {
             to_bytecode(*lhs, prog);
             to_bytecode(*rhs, prog);
-            prog.push(Instruction::Add {})
+            prog.push(Instruction::BinaryOp { op: BinaryOp::Add })
         }
         AstNode::Mul { lhs, rhs } => {
             to_bytecode(*lhs, prog);
             to_bytecode(*rhs, prog);
-            prog.push(Instruction::Mul {})
+            prog.push(Instruction::BinaryOp { op: BinaryOp::Mul })
         }
-        AstNode::Number { value } => prog.push(Instruction::Push { value: value }),
+        AstNode::Number { value } => prog.push(Instruction::Push {
+            value: StackValue::Integer(value),
+        }),
         AstNode::PrintLn { rhs } => {
             to_bytecode(*rhs, prog);
             prog.push(Instruction::PrintLn {})
         }
         AstNode::Assign { id, rhs } => {
             to_bytecode(*rhs, prog);
-            prog.push(Instruction::Assign { id })
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::Assign { id },
+            })
         }
         AstNode::ID { value } => prog.push(Instruction::Load { id: value }),
+        AstNode::Boolean { value } => prog.push(Instruction::Push {
+            value: StackValue::Boolean(value),
+        }),
+        AstNode::GreaterThan { lhs, rhs } => {
+            to_bytecode(*lhs, prog);
+            to_bytecode(*rhs, prog);
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::GreaterThan {},
+            })
+        }
+        AstNode::LessThan { lhs, rhs } => {
+            to_bytecode(*lhs, prog);
+            to_bytecode(*rhs, prog);
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::LessThan {},
+            })
+        }
     }
 }

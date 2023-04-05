@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use yaiwr::{instruction::Instruction, Calc};
+    use yaiwr::{
+        instruction::{BinaryOp, Instruction, StackValue},
+        Calc,
+    };
 
     #[test]
     fn var_assign_bc() {
@@ -9,11 +12,18 @@ mod tests {
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first, second] => {
-                assert_eq!(first, &Instruction::Push { value: 1984 });
+                assert_eq!(
+                    first,
+                    &Instruction::Push {
+                        value: StackValue::Integer(1984)
+                    }
+                );
                 assert_eq!(
                     second,
-                    &Instruction::Assign {
-                        id: "_ABCDabc123".to_string()
+                    &Instruction::BinaryOp {
+                        op: BinaryOp::Assign {
+                            id: "_ABCDabc123".to_string()
+                        }
                     }
                 );
             }
