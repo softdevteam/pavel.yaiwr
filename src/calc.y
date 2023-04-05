@@ -25,7 +25,7 @@ Builtins -> Result<AstNode, ()>:
     "PRINT_LN" "(" Expr ")" ";" { Ok(AstNode::PrintLn{ rhs: Box::new($3?) }) };
 
 AssigVar -> Result<AstNode, ()>:
-    "ASSIGN" "T_VARIABLE" "=" Expr ";" { 
+    "ASSIGN" "T_ID" "=" Expr ";" { 
         Ok(AstNode::Assign { 
             id: $lexer.span_str(($2.map_err(|_| ())?).span()).to_string(), rhs: Box::new($4?) 
         })
@@ -33,7 +33,7 @@ AssigVar -> Result<AstNode, ()>:
 
 
 Id -> Result<AstNode, ()>:
-    "T_VARIABLE" { 
+    "T_ID" { 
         Ok(AstNode::ID { 
             value: $lexer.span_str(($1.map_err(|_| ())?).span()).to_string() 
         })
@@ -58,7 +58,7 @@ ParamList -> Result<Vec<AstNode>, ()>:
     ;
 
 FunctionDeclaration -> Result<AstNode, ()>:
-    "FUNCTION" "T_FUNCTION" "(" ")" "{" Statements "}" { 
+    "FUNCTION" "T_ID" "(" ")" "{" Statements "}" { 
         let id = $2.map_err(|_| ())?;
         Ok(AstNode::Function{ 
             id: $lexer.span_str(id.span()).to_string(),
@@ -67,7 +67,7 @@ FunctionDeclaration -> Result<AstNode, ()>:
         }) 
      }
     | 
-    "FUNCTION" "T_FUNCTION" "(" ParamList ")" "{" Statements "}" { 
+    "FUNCTION" "T_ID" "(" ParamList ")" "{" Statements "}" { 
         let id = $2.map_err(|_| ())?;
         Ok(AstNode::Function{ 
             id: $lexer.span_str(id.span()).to_string(),
@@ -89,14 +89,14 @@ ArgList -> Result<Vec<AstNode>, ()>:
 
 
 FunctionCall -> Result<AstNode, ()>:
-    "T_FUNCTION" "(" ")" ";"{ 
+    "T_ID" "(" ")" ";"{ 
         let id = $1.map_err(|_| ())?;
         Ok(AstNode::FunctionCall{ 
             id: $lexer.span_str(id.span()).to_string(),
             args: vec![]
         })
     }
-    | "T_FUNCTION" "(" ArgList ")" ";" { 
+    | "T_ID" "(" ArgList ")" ";" { 
         let id = $1.map_err(|_| ())?;
         Ok(AstNode::FunctionCall{ 
             id: $lexer.span_str(id.span()).to_string(),
