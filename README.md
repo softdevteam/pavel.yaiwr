@@ -126,8 +126,7 @@ println(1);
 
 Variable names:
 
-1. Variable names have to start with "_"
-2. Variable names can only include alphanumeric and underscore ("_") characters
+Variable names can only include alphanumeric and underscore ("_") characters
 
 ```
 let <name> = <expression>;
@@ -141,10 +140,10 @@ let <name> = <expression>;
 
 Example:
 ```
-let _someVariable = (1+2);
-let _someVariable3 = 1;
-let _x = 2;
-let _y = 1 * _x;
+let someVariable = (1+2);
+let someVariable3 = 1;
+let x = 2;
+let y = 1 * _x;
 ```
 
 ### Functions
@@ -189,16 +188,16 @@ add(1,2)
 
 Example:
 ```
-let _g = 0;
-// code here can't use "_a" variable
+let g = 0;
+// code here can't use "a" variable
 
 fun f() {
-  // code here can use "_g" variable
-  let _a = 2;
-  // code here can use "_a" variable
+  // code here can use "g" variable
+  let a = 2;
+  // code here can use "a" variable
 }
 
-// code here can't use "_a" variable
+// code here can't use "a" variable
 
 ```
 
@@ -232,7 +231,7 @@ fun f() {
 
 [x] Integrate lang_tester https://lib.rs/crates/lang_tester
 
-[ ] Allow function calls without `;`, for example: `add1(add1(1))` instead of `add1(add1(1););`
+[x] Allow function calls without `;`, for example: `add1(add1(1))` instead of `add1(add1(1););`
 
 [ ] Compile variable names to integers
 
@@ -290,3 +289,5 @@ sequenceDiagram
 Yet Another Interpreter Written In Rust
 
 [Grammars](https://github.com/softdevteam/grammars/)
+
+[ANSI C grammar, Lex specification](https://www.lysator.liu.se/c/ANSI-C-grammar-l.html#ADD-ASSIGN)

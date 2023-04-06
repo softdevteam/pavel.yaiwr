@@ -1,5 +1,3 @@
 // Run-time:
-//     stderr: Evaluation error: Parse error: ...
-//       ...Insert T_VARIABLE...
-
+//     stderr:
 let a = 1;

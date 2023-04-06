@@ -8,7 +8,7 @@ mod tests {
     #[test]
     fn integer_literal_bc() {
         let calc = &mut Calc::new();
-        let ast = calc.from_str("1").unwrap();
+        let ast = calc.from_str("1;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first] => {
