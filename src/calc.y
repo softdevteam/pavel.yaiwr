@@ -17,29 +17,29 @@ Statement -> Result<AstNode, ()>:
 
 ExpressionStatement -> Result<AstNode, ()>:
     ';' { Ok(AstNode::Empty{}) }
-    |	Expression ';' { $1 }
+    | Expression ';' { $1 }
     ;
 
 Expression -> Result<AstNode, ()>:
-	AssignmentExpression { $1 }
+    AssignmentExpression { $1 }
     | Expression ',' AssignmentExpression { $1 }
     ;
 
 
 RelationalExpression -> Result<AstNode, ()>: 
-	AdditiveExpression { $1 }
-	| RelationalExpression 'LESS_THAN' AdditiveExpression {
+    AdditiveExpression { $1 }
+    | RelationalExpression 'LESS_THAN' AdditiveExpression {
         Ok(AstNode::LessThan{ lhs: Box::new($1?), rhs: Box::new($3?) }) 
     }
-	| RelationalExpression 'GREATER_THAN' AdditiveExpression {
+    | RelationalExpression 'GREATER_THAN' AdditiveExpression {
         Ok(AstNode::GreaterThan{ lhs: Box::new($1?), rhs: Box::new($3?) })
     }
-	;
+    ;
 
 
 AssignmentExpression -> Result<AstNode, ()>:
-	RelationalExpression { $1 }
-	| 'LET' UnaryExpression "=" AssignmentExpression {
+    RelationalExpression { $1 }
+    | 'LET' UnaryExpression "=" AssignmentExpression {
         match $2.map_err(|_| ())? {
             AstNode::ID { value } => {
                 Ok(AstNode::Assign { id: value, rhs: Box::new($4?) })
@@ -47,29 +47,29 @@ AssignmentExpression -> Result<AstNode, ()>:
             _ => Err(())
         }
     }
-	;
+    ;
 
 AdditiveExpression -> Result<AstNode, ()>:
-	MultiplicativeExpression { $1 }
-	| AdditiveExpression 'ADD' MultiplicativeExpression { 
+    MultiplicativeExpression { $1 }
+    | AdditiveExpression 'ADD' MultiplicativeExpression { 
         Ok(AstNode::Add{ lhs: Box::new($1?), rhs: Box::new($3?) })
     }
     ;
 
 MultiplicativeExpression -> Result<AstNode, ()>: 
     UnaryExpression { $1 }
-	| MultiplicativeExpression 'MUL' UnaryExpression { 
+    | MultiplicativeExpression 'MUL' UnaryExpression { 
       Ok(AstNode::Mul{ lhs: Box::new($1?), rhs: Box::new($3?) })
     }
-	;
+    ;
 
 UnaryExpression -> Result<AstNode, ()>: 
-	PostfixExpression { $1 }
-	;
+    PostfixExpression { $1 }
+    ;
 
 
 PostfixExpression -> Result<AstNode, ()>:
-	PrimaryExpression { $1 }
+    PrimaryExpression { $1 }
   | PostfixExpression '(' ')' { 
         match $1.map_err(|_| ())? {
             AstNode::ID { value: id } => Ok(AstNode::FunctionCall{ id, args: vec![] }),
@@ -85,9 +85,9 @@ PostfixExpression -> Result<AstNode, ()>:
   ;
 
 ArgumentExpressionList -> Result<Vec<AstNode>, ()>:
-	AssignmentExpression {  Ok(vec![$1.map_err(|_| ())?]) }
-	| ArgumentExpressionList ',' AssignmentExpression { append($1.map_err(|_| ())?, $3.map_err(|_| ())?)  }
-	;
+    AssignmentExpression {  Ok(vec![$1.map_err(|_| ())?]) }
+    | ArgumentExpressionList ',' AssignmentExpression { append($1.map_err(|_| ())?, $3.map_err(|_| ())?)  }
+    ;
   
 Id -> Result<AstNode, ()>:
   'IDENTIFIER' { Ok(AstNode::ID { value: $lexer.span_str(($1.map_err(|_| ())?).span()).to_string() }) }
