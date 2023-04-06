@@ -290,4 +290,4 @@ Yet Another Interpreter Written In Rust
 
 [Grammars](https://github.com/softdevteam/grammars/)
 
-[ANSI C grammar, Lex specification](https://www.lysator.liu.se/c/ANSI-C-grammar-l.html#ADD-ASSIGN)
+[ANSI C grammar, Lex specification](https://www.lysator.liu.se/c/ANSI-C-grammar-y.html)
