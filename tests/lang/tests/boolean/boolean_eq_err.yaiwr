@@ -1,0 +1,7 @@
+// Run-time:
+//    stdout: 
+//    stderr: Evaluation error: Evaluation error: Operand 1 and Operand true cannot be applied ...
+
+let a = true; 
+
+println(a == 1);

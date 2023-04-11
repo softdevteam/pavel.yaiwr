@@ -1,0 +1,5 @@
+// Run-time:
+//    stdout: 
+//    stderr: Evaluation error: Evaluation error: Operand 1 and Operand false cannot be applied ...
+
+println(false != 1);

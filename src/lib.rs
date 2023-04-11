@@ -172,7 +172,7 @@ impl Calc {
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
-                            "Operand {} and Operand {} cannot be applied to equality operation",
+                            "Operand {} and Operand {} cannot be applied to Equal operation",
                             op1, op2
                         )
                         .to_string(),
@@ -190,7 +190,7 @@ impl Calc {
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
-                            "Operand {} and Operand {} cannot be applied to equality operation",
+                            "Operand {} and Operand {} cannot be applied to NotEqual operation",
                             op1, op2
                         )
                         .to_string(),
@@ -208,7 +208,7 @@ impl Calc {
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
-                            "Operand {} and Operand {} cannot be applied to logical AND operation",
+                            "Operand {} and Operand {} cannot be applied to logical LogicalAnd operation",
                             op1, op2
                         )
                         .to_string(),
@@ -226,7 +226,7 @@ impl Calc {
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
-                            "Operand {} and Operand {} cannot be applied to logical OR operation",
+                            "Operand {} and Operand {} cannot be applied to logical LogicalOr operation",
                             op1, op2
                         )
                         .to_string(),
