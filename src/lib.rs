@@ -4,7 +4,7 @@ use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
-use std::collections::HashMap;
+use std::{collections::HashMap};
 
 lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
@@ -251,7 +251,11 @@ impl Calc {
                     let val = self.eval(block, scope)?;
                     if let Some(x) = val {
                         self.stack_push(x);
+                        
                     }
+                    dbg!("RETURN {}", &val);
+                    break;
+                    
                 }
                 Instruction::Function {
                     block: body,

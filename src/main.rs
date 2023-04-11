@@ -70,14 +70,14 @@ fn eval_statement(
     calc: &mut Calc,
     scope: &mut Scope,
 ) -> Result<Option<StackValue>, InterpError> {
-    debug!("statement: {:?}", &input);
+    debug!("Statement: {:#?}", &input);
     let ast = calc.from_str(input);
     match ast {
         Ok(ast_node) => {
-            debug!("AST: {:?}", &ast_node);
+            debug!("AST: {:#?}", &ast_node);
             let bytecode = Calc::ast_to_bytecode(ast_node);
 
-            debug!("Bytecode: {:?}", &bytecode);
+            debug!("Bytecode: {:#?}", &bytecode);
             match calc.eval(&bytecode, scope) {
                 Ok(eval_result) => return Ok(eval_result),
                 Err(e) => {

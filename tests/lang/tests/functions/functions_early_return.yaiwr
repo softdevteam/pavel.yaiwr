@@ -1,0 +1,12 @@
+// Run-time:
+//    stdout: true
+//    stderr:
+
+fun is_less_than_100 (x){ 
+    if (x < 100){
+        return true;
+    }
+    return false;
+}
+
+println(is_less_than_100(10));
