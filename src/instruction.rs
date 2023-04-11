@@ -81,21 +81,27 @@ pub enum Instruction {
         id: String,
         args: Vec<Vec<Instruction>>,
     },
+    Conditional {
+        condition: Vec<Instruction>,
+        block: Vec<Instruction>,
+        alternative: Option<Vec<Instruction>>,
+    },
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         match self {
+            Instruction::Conditional { .. } => f.write_str("Conditional"),
             Instruction::Push { value: _ } => f.write_str("Push"),
             Instruction::PrintLn => f.write_str("PrintLn"),
-            Instruction::Load { id: _ } => f.write_str("Load"),
-            Instruction::Return { block: _ } => f.write_str("Return"),
+            Instruction::Load { .. } => f.write_str("Load"),
+            Instruction::Return { .. } => f.write_str("Return"),
             Instruction::Function {
                 id: _,
                 params: _,
                 block: _,
             } => f.write_str("Function"),
-            Instruction::FunctionCall { id: _, args: _ } => f.write_str("FunctionCall"),
+            Instruction::FunctionCall { .. } => f.write_str("FunctionCall"),
             Instruction::BinaryOp { op } => f.write_str(format!("BinaryOp({})", op).as_str()),
         }
     }

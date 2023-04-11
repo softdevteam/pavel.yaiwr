@@ -44,5 +44,10 @@ pub enum AstNode {
         lhs: Box<AstNode>,
         rhs: Box<AstNode>,
     },
+    Conditional {
+        condition: Box<AstNode>,
+        block: Vec<AstNode>,
+        alternative: Option<Vec<AstNode>>,
+    },
     Empty,
 }

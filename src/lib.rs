@@ -220,6 +220,19 @@ impl Calc {
                 Instruction::BinaryOp { op } => {
                     self.eval_binary_op(op, scope)?;
                 }
+                Instruction::Conditional {
+                    condition,
+                    block,
+                    alternative,
+                } => {
+                    if let Ok(Some(StackValue::Boolean(val))) = self.eval(condition, scope) {
+                        if val {
+                            self.eval(block, scope)?;
+                        } else if let Some(alt) = alternative {
+                            self.eval(alt, scope)?;
+                        }
+                    }
+                }
             }
         }
         if self.stack.is_empty() {

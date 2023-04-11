@@ -1,0 +1,11 @@
+// Run-time:
+//    stdout: 123
+//    stderr:
+
+if (true){
+    println(123)
+}
+
+if (false){
+    println(321)
+}
