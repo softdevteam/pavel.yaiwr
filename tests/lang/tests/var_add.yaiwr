@@ -1,5 +1,6 @@
 // Run-time:
-//   stdout: 1984
+//    stdout: 1984
+//    stderr:
 let _a = 1000;
 let _b = 900;
 let _c = 80;

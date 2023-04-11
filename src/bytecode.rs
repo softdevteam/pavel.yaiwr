@@ -102,5 +102,6 @@ pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
                 op: BinaryOp::LessThan {},
             })
         }
+        AstNode::Empty => { /* DO NOTHING */ }
     }
 }

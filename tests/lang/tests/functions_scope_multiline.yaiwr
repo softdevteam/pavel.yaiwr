@@ -1,13 +1,14 @@
 // Run-time:
-//   stdout: 1
+//    stdout: 1
+//    stderr:
 
 fun set_a(){ 
-    let _a = 10;
+    let a = 10;
 }
 
-fun f1(_a){ 
+fun f1(a){ 
     set_a();
-    return _a;
+    return a;
 }
 
-println(f1(1););
+println(f1(1));

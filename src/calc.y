@@ -1,68 +1,116 @@
-%start Statements
-%expect-unused Unmatched "UNMATCHED"
+
+%start StatementList
 %%
 
-Statements -> Result<Vec<AstNode>, ()>:
-    Statements Expr { append($1.map_err(|_| ())?, $2.map_err(|_| ())?)  }
-  | { Ok(vec![]) }
+StatementList -> Result<Vec<AstNode>, ()>:
+    StatementList Statement { append($1.map_err(|_| ())?, $2.map_err(|_| ())?)  }
+    | { Ok(vec![]) }
+    ;
+
+
+Statement -> Result<AstNode, ()>:
+    ExpressionStatement { $1 }
+    | FunctionDefinition { $1 }
+    | Builtins { $1 }
+    | "RETURN" Expression ";" { Ok(AstNode::Return{ block: Box::new($2?) }) }
+    ;
+
+ExpressionStatement -> Result<AstNode, ()>:
+    ';' { Ok(AstNode::Empty{}) }
+    | Expression ';' { $1 }
+    ;
+
+Expression -> Result<AstNode, ()>:
+    AssignmentExpression { $1 }
+    | Expression ',' AssignmentExpression { $1 }
+    ;
+
+
+RelationalExpression -> Result<AstNode, ()>: 
+    AdditiveExpression { $1 }
+    | RelationalExpression 'LESS_THAN' AdditiveExpression {
+        Ok(AstNode::LessThan{ lhs: Box::new($1?), rhs: Box::new($3?) }) 
+    }
+    | RelationalExpression 'GREATER_THAN' AdditiveExpression {
+        Ok(AstNode::GreaterThan{ lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
+    ;
+
+
+AssignmentExpression -> Result<AstNode, ()>:
+    RelationalExpression { $1 }
+    | 'LET' UnaryExpression "=" AssignmentExpression {
+        match $2.map_err(|_| ())? {
+            AstNode::ID { value } => {
+                Ok(AstNode::Assign { id: value, rhs: Box::new($4?) })
+            },
+            _ => Err(())
+        }
+    }
+    ;
+
+AdditiveExpression -> Result<AstNode, ()>:
+    MultiplicativeExpression { $1 }
+    | AdditiveExpression 'ADD' MultiplicativeExpression { 
+        Ok(AstNode::Add{ lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
+    ;
+
+MultiplicativeExpression -> Result<AstNode, ()>: 
+    UnaryExpression { $1 }
+    | MultiplicativeExpression 'MUL' UnaryExpression { 
+      Ok(AstNode::Mul{ lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
+    ;
+
+UnaryExpression -> Result<AstNode, ()>: 
+    PostfixExpression { $1 }
+    ;
+
+
+PostfixExpression -> Result<AstNode, ()>:
+    PrimaryExpression { $1 }
+  | PostfixExpression '(' ')' { 
+        match $1.map_err(|_| ())? {
+            AstNode::ID { value: id } => Ok(AstNode::FunctionCall{ id, args: vec![] }),
+            _ => Err(())
+        }
+    }
+  | PostfixExpression '(' ArgumentExpressionList ')' { 
+        match $1.map_err(|_| ())? {
+        AstNode::ID { value: id } => Ok(AstNode::FunctionCall{ id, args: $3.map_err(|_| ())? }),
+        _ => Err(())
+        }
+   }
   ;
 
-Expr -> Result<AstNode, ()>:
-    Expr "ADD" Term { Ok(AstNode::Add{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
-    | Term { $1 } 
-    | Builtins { $1 }
-    | AssigVar { $1 }
-    | FunctionDeclaration { $1 }
-    | Expr "LESS_THAN" Term { Ok(AstNode::LessThan{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
-    | Expr "GREATER_THAN" Term { Ok(AstNode::GreaterThan{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
+ArgumentExpressionList -> Result<Vec<AstNode>, ()>:
+    AssignmentExpression {  Ok(vec![$1.map_err(|_| ())?]) }
+    | ArgumentExpressionList ',' AssignmentExpression { append($1.map_err(|_| ())?, $3.map_err(|_| ())?)  }
     ;
-
-Term -> Result<AstNode, ()>:
-      Term 'MUL' CallableExpr { Ok(AstNode::Mul{ lhs: Box::new($1?), rhs: Box::new($3?) }) }
-    | CallableExpr { $1 }
-    ;
-
-
-Builtins -> Result<AstNode, ()>:
-    "PRINT_LN" "(" Expr ")" ";" { Ok(AstNode::PrintLn{ rhs: Box::new($3?) }) };
-
-AssigVar -> Result<AstNode, ()>:
-    "ASSIGN" "T_VARIABLE" "=" Expr ";" { 
-        Ok(AstNode::Assign { 
-            id: $lexer.span_str(($2.map_err(|_| ())?).span()).to_string(), rhs: Box::new($4?) 
-        })
-     };
-
-
+  
 Id -> Result<AstNode, ()>:
-    "T_VARIABLE" { 
-        Ok(AstNode::ID { 
-            value: $lexer.span_str(($1.map_err(|_| ())?).span()).to_string() 
-        })
-    };
+  'IDENTIFIER' { Ok(AstNode::ID { value: $lexer.span_str(($1.map_err(|_| ())?).span()).to_string() }) }
+  ;
 
-Literal -> Result<AstNode, ()>:
-    "INTEGER_LITERAL" { parse_number($lexer.span_str(($1.map_err(|_| ())?).span())) }
-    | "BOOLEAN_LITERAL" { parse_boolean($lexer.span_str(($1.map_err(|_| ())?).span())) }
+PrimaryExpression -> Result<AstNode, ()>:
+    Id { $1 }
+    |  '(' Expression ')' { $2 }
+    | Literals { $1 }
     ;
 
-CallableExpr -> Result<AstNode, ()>:
-     "(" Expr ")" { $2 }
-    | Literal { $1 }
-    | FunctionCall { $1 }
-    | Id { $1 }
-    | Return { $1 }
+Literals -> Result<AstNode, ()>:
+    'INTEGER_LITERAL' { parse_int($lexer.span_str(($1.map_err(|_| ())?).span())) }
+    | 'BOOLEAN_LITERAL' { parse_boolean($lexer.span_str(($1.map_err(|_| ())?).span())) }
     ;
-
-// Function Declaration
 
 ParamList -> Result<Vec<AstNode>, ()>:
     ParamList ',' Id { append($1.map_err(|_| ())?, $3.map_err(|_| ())?) }
-    | Id {  Ok(vec![$1.map_err(|_| ())?]) }
+    | Id { Ok(vec![$1.map_err(|_| ())?]) }
     ;
 
-FunctionDeclaration -> Result<AstNode, ()>:
-    "FUNCTION" "T_FUNCTION" "(" ")" "{" Statements "}" { 
+FunctionDefinition -> Result<AstNode, ()>:
+    'FUNCTION' 'IDENTIFIER' '(' ')' '{' StatementList '}' { 
         let id = $2.map_err(|_| ())?;
         Ok(AstNode::Function{ 
             id: $lexer.span_str(id.span()).to_string(),
@@ -71,7 +119,7 @@ FunctionDeclaration -> Result<AstNode, ()>:
         }) 
      }
     | 
-    "FUNCTION" "T_FUNCTION" "(" ParamList ")" "{" Statements "}" { 
+    'FUNCTION' 'IDENTIFIER' '(' ParamList ')' '{' StatementList '}' { 
         let id = $2.map_err(|_| ())?;
         Ok(AstNode::Function{ 
             id: $lexer.span_str(id.span()).to_string(),
@@ -81,38 +129,10 @@ FunctionDeclaration -> Result<AstNode, ()>:
      }
     ;
 
-Return -> Result<AstNode, ()>:
-    "RETURN" Expr ";" { Ok(AstNode::Return{ block: Box::new($2?) }) };
+Builtins -> Result<AstNode, ()>:
+    'PRINT_LN' '(' Expression ')' { Ok(AstNode::PrintLn{ rhs: Box::new($3?) }) };
 
-// Function Call
-
-ArgList -> Result<Vec<AstNode>, ()>:
-    ArgList ',' Expr { append($1.map_err(|_| ())?, $3.map_err(|_| ())?) }
-    | Expr {  Ok(vec![$1.map_err(|_| ())?]) }
-    ;
-
-
-FunctionCall -> Result<AstNode, ()>:
-    "T_FUNCTION" "(" ")" ";"{ 
-        let id = $1.map_err(|_| ())?;
-        Ok(AstNode::FunctionCall{ 
-            id: $lexer.span_str(id.span()).to_string(),
-            args: vec![]
-        })
-    }
-    | "T_FUNCTION" "(" ArgList ")" ";" { 
-        let id = $1.map_err(|_| ())?;
-        Ok(AstNode::FunctionCall{ 
-            id: $lexer.span_str(id.span()).to_string(),
-            args: $3.map_err(|_| ())?
-        })
-      }
-    ;
-
-Unmatched -> ():
-      "UNMATCHED" { };
 %%
-
 use crate::ast::AstNode;
 
 fn append(mut lhs: Vec<AstNode>, rhs: AstNode ) -> Result<Vec<AstNode>, ()>{
@@ -120,7 +140,7 @@ fn append(mut lhs: Vec<AstNode>, rhs: AstNode ) -> Result<Vec<AstNode>, ()>{
     Ok(lhs)
 }
 
-fn parse_number(s: &str) -> Result<AstNode, ()> {
+fn parse_int(s: &str) -> Result<AstNode, ()> {
     match s.parse::<u64>() {
         Ok(n_val) => Ok(AstNode::Number{ value: n_val }),
         Err(_) => {
@@ -129,6 +149,7 @@ fn parse_number(s: &str) -> Result<AstNode, ()> {
         }
     }
 }
+
 
 fn parse_boolean(s: &str) -> Result<AstNode, ()> {
     match s.parse::<bool>() {

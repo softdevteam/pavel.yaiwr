@@ -9,7 +9,7 @@ mod tests {
     #[test]
     fn bool_literal_true_bc() {
         let calc = &mut Calc::new();
-        let ast = calc.from_str("true").unwrap();
+        let ast = calc.from_str("true;").unwrap();
         assert_eq!(ast[0], AstNode::Boolean { value: true });
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
@@ -28,7 +28,7 @@ mod tests {
     #[test]
     fn bool_literal_false_bc() {
         let calc = &mut Calc::new();
-        let ast = calc.from_str("true").unwrap();
+        let ast = calc.from_str("true;").unwrap();
         assert_eq!(ast[0], AstNode::Boolean { value: true });
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
@@ -47,7 +47,7 @@ mod tests {
     #[test]
     fn bool_greater_than_bc() {
         let calc = &mut Calc::new();
-        let ast = calc.from_str("1 > 2").unwrap();
+        let ast = calc.from_str("1 > 2;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3] => {
@@ -76,7 +76,7 @@ mod tests {
     #[test]
     fn bool_less_than_bc() {
         let calc = &mut Calc::new();
-        let ast = calc.from_str("1 < 2").unwrap();
+        let ast = calc.from_str("1 < 2;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3] => {
@@ -106,7 +106,7 @@ mod tests {
     #[test]
     fn bool_less_than_expression_bc() {
         let calc = &mut Calc::new();
-        let ast = calc.from_str("(1+2) < 4").unwrap();
+        let ast = calc.from_str("(1+2) < 4;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3, bc4, bc5] => {

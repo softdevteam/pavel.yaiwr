@@ -1,5 +1,7 @@
 // Run-time:
-//   stdout: 24
+//    stdout: 24
+//    stderr:
+
 let _a = 1;
 let _b = 2;
 let _c = 3;

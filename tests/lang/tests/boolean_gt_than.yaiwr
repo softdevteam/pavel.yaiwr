@@ -1,5 +1,6 @@
 // Run-time:
-//   stdout: false
+//    stdout: false
+//    stderr:
 
 let _a = 1; 
 let _b = 2; 

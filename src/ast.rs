@@ -44,4 +44,5 @@ pub enum AstNode {
         lhs: Box<AstNode>,
         rhs: Box<AstNode>,
     },
+    Empty,
 }
