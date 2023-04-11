@@ -2,11 +2,12 @@ use std::fmt::{Display, Error, Formatter};
 
 use crate::err::InterpError;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum StackValue {
     Integer(u64),
     Boolean(bool),
 }
+
 impl StackValue {
     pub fn as_int(&self) -> Result<u64, InterpError> {
         match self {
@@ -23,6 +24,41 @@ impl StackValue {
                 format!("Expected StackValue Boolean, got {}!", a).to_string(),
             )),
         }
+    }
+    pub fn is_same_type(&self, other: &Self) -> bool {
+        match self {
+            StackValue::Boolean(..) => {
+                if let StackValue::Boolean(..) = other {
+                    return true;
+                }
+                false
+            }
+            StackValue::Integer(..) => {
+                if let StackValue::Integer(..) = other {
+                    return true;
+                }
+                false
+            }
+        }
+    }
+}
+
+impl PartialEq for StackValue {
+    fn eq(&self, other: &Self) -> bool {
+        match self {
+            StackValue::Boolean(self_val) => match other {
+                StackValue::Boolean(other_val) => return self_val == other_val,
+                _ => false,
+            },
+            StackValue::Integer(self_val) => match other {
+                StackValue::Integer(other_val) => return self_val == other_val,
+                _ => false,
+            },
+        }
+    }
+
+    fn ne(&self, other: &Self) -> bool {
+        return !self.eq(other);
     }
 }
 
@@ -42,6 +78,8 @@ pub enum BinaryOp {
     GreaterThan,
     Add,
     Mul,
+    Equal,
+    NotEqual,
     Assign { id: String },
 }
 
@@ -52,7 +90,9 @@ impl Display for BinaryOp {
             BinaryOp::GreaterThan => f.write_str("GreaterThan"),
             BinaryOp::Add => f.write_str("Add"),
             BinaryOp::Mul => f.write_str("Mul"),
-            BinaryOp::Assign { id: _ } => f.write_str("Assign"),
+            BinaryOp::Assign { .. } => f.write_str("Assign"),
+            BinaryOp::Equal => f.write_str("Equal"),
+            BinaryOp::NotEqual => f.write_str("NotEqual"),
         }
     }
 }

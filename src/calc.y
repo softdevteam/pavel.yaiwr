@@ -56,17 +56,18 @@ RelationalExpression -> Result<AstNode, ()>:
 
 EqualityExpression -> Result<AstNode, ()>: 
     RelationalExpression { $1 }
-
-    // == "EQEQ"
-    // != "NOTEQ"
-    // && "AND"
-    // \|\| "OR"
-    // | EqualityExpression 'EQEQ' RelationalExpression { Ok(AstNode::Empty{}) }
-	// | EqualityExpression 'NOTEQ' RelationalExpression { Ok(AstNode::Empty{}) }
+    | EqualityExpression 'EQEQ' RelationalExpression { Ok(AstNode::Equal {
+            lhs: Box::new($1?), rhs: Box::new($3?)
+        })}
+	| EqualityExpression 'NOTEQ' RelationalExpression { Ok(AstNode::NotEqual {
+            lhs: Box::new($1?), rhs: Box::new($3?)
+        })}
     ;
 
 LogincalAndExpression -> Result<AstNode, ()>:
     EqualityExpression { $1 }
+    // && "AND"
+    // \|\| "OR"
     // | LogincalAndExpression 'AND' EqualityExpression { Ok(AstNode::Empty{}) }
     ;
 

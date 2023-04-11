@@ -139,4 +139,63 @@ mod tests {
             _ => panic!("expected bytecodes to be not empty!"),
         }
     }
+
+    #[test]
+    fn bool_eq_bc() {
+        let calc = &mut Calc::new();
+        let ast = calc.from_str("1 == 1;").unwrap();
+        let bytecode = Calc::ast_to_bytecode(ast);
+        match bytecode.as_slice() {
+            [bc1, bc2, bc3] => {
+                assert_eq!(
+                    bc1,
+                    &Instruction::Push {
+                        value: StackValue::Integer(1)
+                    }
+                );
+                assert_eq!(
+                    bc2,
+                    &Instruction::Push {
+                        value: StackValue::Integer(1)
+                    }
+                );
+                assert_eq!(
+                    bc3,
+                    &Instruction::BinaryOp {
+                        op: BinaryOp::Equal
+                    }
+                );
+            }
+            _ => panic!("expected bytecodes to be not empty!"),
+        }
+    }
+    #[test]
+    fn bool_neq_bc() {
+        let calc = &mut Calc::new();
+        let ast = calc.from_str("1 != 1;").unwrap();
+        let bytecode = Calc::ast_to_bytecode(ast);
+        match bytecode.as_slice() {
+            [bc1, bc2, bc3] => {
+                assert_eq!(
+                    bc1,
+                    &Instruction::Push {
+                        value: StackValue::Integer(1)
+                    }
+                );
+                assert_eq!(
+                    bc2,
+                    &Instruction::Push {
+                        value: StackValue::Integer(1)
+                    }
+                );
+                assert_eq!(
+                    bc3,
+                    &Instruction::BinaryOp {
+                        op: BinaryOp::NotEqual
+                    }
+                );
+            }
+            _ => panic!("expected bytecodes to be not empty!"),
+        }
+    }
 }

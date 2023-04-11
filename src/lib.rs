@@ -162,6 +162,42 @@ impl Calc {
                 scope.var_store.insert(id.to_string(), val);
                 val
             }
+            BinaryOp::Equal => {
+                let op1 = self.stack_pop()?;
+                let op2 = self.stack_pop()?;
+                let stack_value;
+                if op1.is_same_type(&op2) {
+                    stack_value = StackValue::Boolean(op1.eq(&op2));
+                    self.stack.push(stack_value)
+                } else {
+                    return Err(InterpError::EvalError(
+                        format!(
+                            "Operand {} and Operand {} cannot be applied to equality function",
+                            op1, op2
+                        )
+                        .to_string(),
+                    ));
+                }
+                stack_value
+            }
+            BinaryOp::NotEqual => {
+                let op1 = self.stack_pop()?;
+                let op2 = self.stack_pop()?;
+                let stack_value;
+                if op1.is_same_type(&op2) {
+                    stack_value = StackValue::Boolean(op1.eq(&op2));
+                    self.stack.push(stack_value)
+                } else {
+                    return Err(InterpError::EvalError(
+                        format!(
+                            "Operand {} and Operand {} cannot be applied to equality function",
+                            op1, op2
+                        )
+                        .to_string(),
+                    ));
+                }
+                stack_value
+            }
         };
         self.stack_push(val);
         Ok(Some(val))

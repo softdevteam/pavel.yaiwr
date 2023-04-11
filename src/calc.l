@@ -14,6 +14,8 @@
 ; ";"
 , ","
 = "="
+== "EQEQ"
+!= "NOTEQ"
 if "IF"
 else "ELSE"
 fun "FUNCTION"

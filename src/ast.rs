@@ -40,6 +40,14 @@ pub enum AstNode {
         lhs: Box<AstNode>,
         rhs: Box<AstNode>,
     },
+    Equal {
+        lhs: Box<AstNode>,
+        rhs: Box<AstNode>,
+    },
+    NotEqual {
+        lhs: Box<AstNode>,
+        rhs: Box<AstNode>,
+    },
     LessThan {
         lhs: Box<AstNode>,
         rhs: Box<AstNode>,
