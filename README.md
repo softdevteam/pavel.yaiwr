@@ -233,6 +233,10 @@ fun f() {
 
 [x] Allow function calls without `;`, for example: `add1(add1(1))` instead of `add1(add1(1););`
 
+[ ] Conditionals
+
+[ ] Closures
+
 [ ] Compile variable names to integers
 
 [ ] Use actions to make an AST on the fly (see e.g. https://github.com/ltratt/pizauth/blob/master/src/config.y)
