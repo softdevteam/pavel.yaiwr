@@ -172,7 +172,7 @@ impl Calc {
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
-                            "Operand {} and Operand {} cannot be applied to equality function",
+                            "Operand {} and Operand {} cannot be applied to equality operation",
                             op1, op2
                         )
                         .to_string(),
@@ -190,7 +190,43 @@ impl Calc {
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
-                            "Operand {} and Operand {} cannot be applied to equality function",
+                            "Operand {} and Operand {} cannot be applied to equality operation",
+                            op1, op2
+                        )
+                        .to_string(),
+                    ));
+                }
+                stack_value
+            }
+            BinaryOp::LogicalAnd => {
+                let op1 = self.stack_pop()?;
+                let op2 = self.stack_pop()?;
+                let stack_value;
+                if op1.is_same_type(&op2) {
+                    stack_value = StackValue::Boolean(op1.as_bool()? && op2.as_bool()?);
+                    self.stack.push(stack_value)
+                } else {
+                    return Err(InterpError::EvalError(
+                        format!(
+                            "Operand {} and Operand {} cannot be applied to logical AND operation",
+                            op1, op2
+                        )
+                        .to_string(),
+                    ));
+                }
+                stack_value
+            }
+            BinaryOp::LogicalOr => {
+                let op1 = self.stack_pop()?;
+                let op2 = self.stack_pop()?;
+                let stack_value;
+                if op1.is_same_type(&op2) {
+                    stack_value = StackValue::Boolean(op1.as_bool()? || op2.as_bool()?);
+                    self.stack.push(stack_value)
+                } else {
+                    return Err(InterpError::EvalError(
+                        format!(
+                            "Operand {} and Operand {} cannot be applied to logical OR operation",
                             op1, op2
                         )
                         .to_string(),

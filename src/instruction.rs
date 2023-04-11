@@ -80,6 +80,8 @@ pub enum BinaryOp {
     Mul,
     Equal,
     NotEqual,
+    LogicalAnd,
+    LogicalOr,
     Assign { id: String },
 }
 
@@ -93,6 +95,8 @@ impl Display for BinaryOp {
             BinaryOp::Assign { .. } => f.write_str("Assign"),
             BinaryOp::Equal => f.write_str("Equal"),
             BinaryOp::NotEqual => f.write_str("NotEqual"),
+            BinaryOp::LogicalAnd => f.write_str("LogicalAnd"),
+            BinaryOp::LogicalOr => f.write_str("LogicalOr"),
         }
     }
 }

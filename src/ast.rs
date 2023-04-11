@@ -57,5 +57,13 @@ pub enum AstNode {
         block: Vec<AstNode>,
         alternative: Option<Vec<AstNode>>,
     },
+    LogicalAnd {
+        lhs: Box<AstNode>,
+        rhs: Box<AstNode>,
+    },
+    LogicalOr {
+        lhs: Box<AstNode>,
+        rhs: Box<AstNode>,
+    },
     Empty,
 }

@@ -56,29 +56,30 @@ RelationalExpression -> Result<AstNode, ()>:
 
 EqualityExpression -> Result<AstNode, ()>: 
     RelationalExpression { $1 }
-    | EqualityExpression 'EQEQ' RelationalExpression { Ok(AstNode::Equal {
-            lhs: Box::new($1?), rhs: Box::new($3?)
-        })}
-	| EqualityExpression 'NOTEQ' RelationalExpression { Ok(AstNode::NotEqual {
-            lhs: Box::new($1?), rhs: Box::new($3?)
-        })}
+    | EqualityExpression 'EQEQ' RelationalExpression { 
+        Ok(AstNode::Equal { lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
+	| EqualityExpression 'NOTEQ' RelationalExpression { 
+        Ok(AstNode::NotEqual { lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
     ;
 
 LogincalAndExpression -> Result<AstNode, ()>:
     EqualityExpression { $1 }
-    // && "AND"
-    // \|\| "OR"
-    // | LogincalAndExpression 'AND' EqualityExpression { Ok(AstNode::Empty{}) }
+    | LogincalAndExpression 'AND' EqualityExpression { 
+        Ok(AstNode::LogicalAnd{ lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
     ;
 
 LogincalOrExpression -> Result<AstNode, ()>:
     LogincalAndExpression { $1 }
-    // | LogincalOrExpression 'OR' LogincalAndExpression { Ok(AstNode::Empty{}) }
+    | LogincalOrExpression 'OR' LogincalAndExpression { 
+        Ok(AstNode::LogicalOr{ lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
     ;
     
 ConditionalExpression -> Result<AstNode, ()>:
 	LogincalOrExpression { $1 }
-	| LogincalOrExpression 'QUESTION' Expression 'COLON' ConditionalExpression { Ok(AstNode::Empty{}) }
 	;
 
 AssignmentExpression -> Result<AstNode, ()>:
@@ -189,7 +190,6 @@ fn parse_int(s: &str) -> Result<AstNode, ()> {
         }
     }
 }
-
 
 fn parse_boolean(s: &str) -> Result<AstNode, ()> {
     match s.parse::<bool>() {

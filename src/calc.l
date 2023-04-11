@@ -16,6 +16,8 @@
 = "="
 == "EQEQ"
 != "NOTEQ"
+&& "AND"
+\|\| "OR"
 if "IF"
 else "ELSE"
 fun "FUNCTION"

@@ -138,5 +138,19 @@ pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
                 op: BinaryOp::NotEqual,
             })
         }
+        AstNode::LogicalAnd { lhs, rhs } => {
+            to_bytecode(*lhs, prog);
+            to_bytecode(*rhs, prog);
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::LogicalAnd,
+            })
+        }
+        AstNode::LogicalOr { lhs, rhs } => {
+            to_bytecode(*lhs, prog);
+            to_bytecode(*rhs, prog);
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::LogicalOr,
+            })
+        }
     }
 }

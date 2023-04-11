@@ -198,4 +198,64 @@ mod tests {
             _ => panic!("expected bytecodes to be not empty!"),
         }
     }
+
+    #[test]
+    fn bool_and_bc() {
+        let calc = &mut Calc::new();
+        let ast = calc.from_str("true && false;").unwrap();
+        let bytecode = Calc::ast_to_bytecode(ast);
+        match bytecode.as_slice() {
+            [bc1, bc2, bc3] => {
+                assert_eq!(
+                    bc1,
+                    &Instruction::Push {
+                        value: StackValue::Boolean(true)
+                    }
+                );
+                assert_eq!(
+                    bc2,
+                    &Instruction::Push {
+                        value: StackValue::Boolean(false)
+                    }
+                );
+                assert_eq!(
+                    bc3,
+                    &Instruction::BinaryOp {
+                        op: BinaryOp::LogicalAnd
+                    }
+                );
+            }
+            _ => panic!("expected bytecodes to be not empty!"),
+        }
+    }
+
+    #[test]
+    fn bool_or_bc() {
+        let calc = &mut Calc::new();
+        let ast = calc.from_str("true || false;").unwrap();
+        let bytecode = Calc::ast_to_bytecode(ast);
+        match bytecode.as_slice() {
+            [bc1, bc2, bc3] => {
+                assert_eq!(
+                    bc1,
+                    &Instruction::Push {
+                        value: StackValue::Boolean(true)
+                    }
+                );
+                assert_eq!(
+                    bc2,
+                    &Instruction::Push {
+                        value: StackValue::Boolean(false)
+                    }
+                );
+                assert_eq!(
+                    bc3,
+                    &Instruction::BinaryOp {
+                        op: BinaryOp::LogicalOr
+                    }
+                );
+            }
+            _ => panic!("expected bytecodes to be not empty!"),
+        }
+    }
 }
