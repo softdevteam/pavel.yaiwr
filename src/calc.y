@@ -180,6 +180,10 @@ Builtins -> Result<AstNode, ()>:
 %%
 use crate::ast::AstNode;
 
+fn append(mut lhs: Vec<AstNode>, rhs: AstNode ) -> Result<Vec<AstNode>, ()>{
+    lhs.push(rhs);
+    Ok(lhs)
+}
 
 fn parse_int(s: &str) -> Result<AstNode, ()> {
     match s.parse::<u64>() {
@@ -199,9 +203,4 @@ fn parse_boolean(s: &str) -> Result<AstNode, ()> {
             Err(())
         }
     }
-}
-
-fn append(mut lhs: Vec<AstNode>, rhs: AstNode ) -> Result<Vec<AstNode>, ()>{
-    lhs.push(rhs);
-    Ok(lhs)
 }
