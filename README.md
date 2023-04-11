@@ -78,12 +78,21 @@ Example:
 let _t = true;
 let _f = false;
 ```
-#### Boolean Comparison Operators
+#### Comparison Operators
 
 | Symbol |  Meaning  | Example |
 |:-----|:--------:|------:|
 | >   | Greater than | `1 > 2`|
-| <   |  Less than  a| `2 < 1`|
+| <   |  Less than | `2 < 1`|
+
+#### Logical Operators
+
+| Symbol |  Meaning  | Example |
+|:-----|:--------:|------:|
+| ==   | Equal | `1 == 2`|
+| !=   | Not Equal | `2 < 1`|
+| \|\|   | Or | `true \|\| false`|
+| &&   | And | `true && false`|
 
 Example:
 ```
@@ -144,6 +153,30 @@ let someVariable = (1+2);
 let someVariable3 = 1;
 let x = 2;
 let y = 1 * _x;
+```
+
+### Conditionals
+
+Conditional statements allow a block of code to be executed if a condition is true or if specified, execution of an alternative block. 
+
+#### if...else statements
+
+```
+if (true) {
+  /* code to run if condition is true */
+} else {
+  /* run some other code instead */
+}
+```
+
+`else` block is optional, one can use if statements without it. 
+
+Example:
+
+```
+if (true) {
+  /* code to run if condition is true */
+}
 ```
 
 ### Functions
