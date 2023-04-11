@@ -1,0 +1,7 @@
+let aa = 2;
+
+fun bb(a1){
+    return a1; * a1;;
+}
+
+println(2+bb(aa;));

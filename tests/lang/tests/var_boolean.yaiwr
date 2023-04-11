@@ -1,6 +1,6 @@
 // Run-time:
-//   stdout: false
+//    stdout: false
+//    stderr:
+let a = 1 > 2; 
 
-let _a = 1 > 2; 
-
-println(_a);
+println(a);

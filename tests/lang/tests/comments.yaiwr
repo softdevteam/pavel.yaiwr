@@ -1,5 +1,6 @@
 // Run-time:
-//   stdout: 1
+//    stdout: 1
+//    stderr:
 
 let _a = 1; // Should be ignored!
 // Should be ignored!

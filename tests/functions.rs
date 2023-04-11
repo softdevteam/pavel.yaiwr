@@ -47,7 +47,7 @@ mod tests {
         eval_prog(calc, "fun add1 (_p1){ return _p1 + 1; }", scope).unwrap();
         eval_prog(calc, "fun add2 (_p1){ return _p1 + 2; }", scope).unwrap();
         assert_eq!(
-            eval_prog(calc, "add2(add1(1););", scope).unwrap().unwrap(),
+            eval_prog(calc, "add2(add1(1));", scope).unwrap().unwrap(),
             StackValue::Integer(4)
         );
     }

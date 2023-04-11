@@ -1,12 +1,13 @@
 // Run-time:
-//   stdout: 123
+//    stdout: 123
+//    stderr:
 
-let _global_var = 122;
+let global_var = 122;
 
 fun add1 (){ 
-    return _global_var + 1; 
+    return global_var + 1; 
 }
 
-let _result = add1();;
+let result = add1();;
 
-println(_result);
+println(result);

@@ -1,5 +1,6 @@
 // Run-time:
-//     stderr: Evaluation error: Variable with id '_a' cannot be found!
+//    stdout:
+//    stderr: Evaluation error: Variable with id '_a' cannot be found!
 
 fun f1 (){ 
     let _a = 1;

@@ -1,5 +1,6 @@
 // Run-time:
-//   stdout: 25
+//    stdout: 25
+//    stderr:
 
 fun dd(){ 
     let _a = 10;

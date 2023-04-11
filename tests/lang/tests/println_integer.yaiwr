@@ -1,0 +1,8 @@
+// Run-time:
+//    stdout: 7
+//    stderr:
+
+let a = 4; 
+let b = 3; 
+
+println(a + b);

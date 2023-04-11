@@ -1,10 +1,11 @@
 // Run-time:
-//   stdout: 7
+//    stdout: 7
+//    stderr:
 
-let _x = 2;
-let _y = 3;
+let x = 2;
+let y = 3;
 
-fun add (_x, _y){ 
-    return _x + _y; 
+fun add (x, y){ 
+    return x + y; 
 }
-println(add(_x + 1, _y + 1););
+println(add(x + 1, y + 1));

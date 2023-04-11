@@ -1,4 +1,5 @@
 // Run-time:
-//   stdout: 27
+//    stdout: 27
+//    stderr:
 
 println((1+2)*(3*3));
