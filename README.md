@@ -266,7 +266,7 @@ fun f() {
 
 [x] Allow function calls without `;`, for example: `add1(add1(1))` instead of `add1(add1(1););`
 
-[ ] Conditionals
+[x] Conditionals
 
 [ ] Closures
 
