@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use yaiwr::{
-        instruction::{BinaryOp, Instruction, StackValue},
+        instruction::{BinaryOp, Instruction, StackValue, EvalResult},
         scope::Scope,
         Calc,
     };
@@ -13,7 +13,7 @@ mod tests {
         let bytecode = Calc::ast_to_bytecode(ast);
         assert_eq!(
             calc.eval(&bytecode, &mut Scope::new()).unwrap(),
-            Some(StackValue::Integer(4))
+            Some(EvalResult::Value(StackValue::Integer(4)))
         );
     }
 
@@ -24,7 +24,7 @@ mod tests {
         let bytecode = Calc::ast_to_bytecode(ast);
         assert_eq!(
             calc.eval(&bytecode, &mut Scope::new()).unwrap(),
-            Some(StackValue::Integer(8))
+            Some(EvalResult::Value(StackValue::Integer(8)))
         );
     }
 

@@ -9,7 +9,7 @@ pub enum InterpError {
     VariableNotFound(String),
     ProgramFileNotFound(String),
     UndefinedFunction(String),
-    EvalError(String),
+    EvalError(String)
 }
 
 impl Display for InterpError {
@@ -45,7 +45,7 @@ impl Error for InterpError {
             InterpError::ParseError(_) => "ParseError",
             InterpError::Numeric(_) => "Numeric",
             InterpError::VariableNotFound(_) => "VariableNotFound",
-            InterpError::ProgramFileNotFound(_) => "ProgramFileNotFound",
+            InterpError::ProgramFileNotFound(_) => "ProgramFileNotFound"
         }
     }
 }

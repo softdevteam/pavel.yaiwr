@@ -3,7 +3,7 @@ use std::{
     env, fs,
     io::{self, stdout, BufRead, Write},
 };
-use yaiwr::{err::InterpError, instruction::StackValue, scope::Scope, Calc};
+use yaiwr::{err::InterpError, instruction::{EvalResult}, scope::Scope, Calc};
 
 fn main() {
     env_logger::init();
@@ -34,7 +34,7 @@ pub fn run_from_file(
     file_name: &str,
     calc: &mut Calc,
     scope: &mut Scope,
-) -> Result<Option<StackValue>, InterpError> {
+) -> Result<Option<EvalResult>, InterpError> {
     let file_path = file_name;
     match fs::read_to_string(file_name) {
         Ok(content) => eval_statement(content.as_str(), calc, scope),
@@ -53,11 +53,11 @@ fn repl(calc: &mut Calc, scope: &mut Scope) {
                     continue;
                 }
                 match eval_statement(l, calc, scope) {
-                    Ok(Some(value)) => {
+                    Ok(Some(EvalResult::Value(value))) => {
                         println!("{}", value);
                     }
                     Err(err) => print_err(err),
-                    Ok(None) => {}
+                    _ => {}
                 }
             }
             _ => {}
@@ -69,7 +69,7 @@ fn eval_statement(
     input: &str,
     calc: &mut Calc,
     scope: &mut Scope,
-) -> Result<Option<StackValue>, InterpError> {
+) -> Result<Option<EvalResult>, InterpError> {
     debug!("Statement: {:#?}", &input);
     let ast = calc.from_str(input);
     match ast {
@@ -79,7 +79,9 @@ fn eval_statement(
 
             debug!("Bytecode: {:#?}", &bytecode);
             match calc.eval(&bytecode, scope) {
-                Ok(eval_result) => return Ok(eval_result),
+                Ok(eval_result) => {
+                    return Ok(eval_result)
+                }
                 Err(e) => {
                     return Err(e);
                 }

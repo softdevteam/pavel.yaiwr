@@ -3,7 +3,9 @@
 //    stderr:
 
 fun get_bool (){ 
-    return true;
+    if (x < 100){
+        return true;
+    }
     return false; // should not be executed
 }
 

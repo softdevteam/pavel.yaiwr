@@ -8,6 +8,17 @@ pub enum StackValue {
     Boolean(bool),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Jump {
+    Return
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum EvalResult {
+    Value(StackValue),
+    Halt(Jump)
+}
+
 impl StackValue {
     pub fn as_int(&self) -> Result<u64, InterpError> {
         match self {
