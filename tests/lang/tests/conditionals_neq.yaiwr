@@ -1,5 +1,5 @@
 // Run-time:
-//    stdout: 2
+//    stdout: 1
 //    stderr:
 
 if (1 != 2){

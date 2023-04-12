@@ -1,8 +1,11 @@
-use std::fmt::{Display, Error, Formatter};
+use std::{
+    fmt::{Display, Error, Formatter},
+    mem::discriminant,
+};
 
 use crate::err::InterpError;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StackValue {
     Integer(u64),
     Boolean(bool),
@@ -10,13 +13,13 @@ pub enum StackValue {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Jump {
-    Return
+    Return,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EvalResult {
     Value(StackValue),
-    Halt(Jump)
+    Halt(Jump),
 }
 
 impl StackValue {
@@ -36,40 +39,9 @@ impl StackValue {
             )),
         }
     }
+
     pub fn is_same_type(&self, other: &Self) -> bool {
-        match self {
-            StackValue::Boolean(..) => {
-                if let StackValue::Boolean(..) = other {
-                    return true;
-                }
-                false
-            }
-            StackValue::Integer(..) => {
-                if let StackValue::Integer(..) = other {
-                    return true;
-                }
-                false
-            }
-        }
-    }
-}
-
-impl PartialEq for StackValue {
-    fn eq(&self, other: &Self) -> bool {
-        match self {
-            StackValue::Boolean(self_val) => match other {
-                StackValue::Boolean(other_val) => return self_val == other_val,
-                _ => false,
-            },
-            StackValue::Integer(self_val) => match other {
-                StackValue::Integer(other_val) => return self_val == other_val,
-                _ => false,
-            },
-        }
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        return !self.eq(other);
+        discriminant(self) == discriminant(other)
     }
 }
 

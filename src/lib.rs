@@ -171,40 +171,14 @@ impl Calc {
                 val
             }
             BinaryOp::Equal => {
-                let op1 = self.stack_pop()?;
-                let op2 = self.stack_pop()?;
-                let stack_value;
-                if op1.is_same_type(&op2) {
-                    stack_value = StackValue::Boolean(op1.eq(&op2));
-                    self.stack.push(stack_value)
-                } else {
-                    return Err(InterpError::EvalError(
-                        format!(
-                            "Operand {} and Operand {} cannot be applied to Equal operation",
-                            op1, op2
-                        )
-                        .to_string(),
-                    ));
-                }
-                stack_value
+                let val = self.eval_eq()?;
+                self.stack.push(val);
+                val
             }
             BinaryOp::NotEqual => {
-                let op1 = self.stack_pop()?;
-                let op2 = self.stack_pop()?;
-                let stack_value;
-                if op1.is_same_type(&op2) {
-                    stack_value = StackValue::Boolean(op1.eq(&op2));
-                    self.stack.push(stack_value)
-                } else {
-                    return Err(InterpError::EvalError(
-                        format!(
-                            "Operand {} and Operand {} cannot be applied to NotEqual operation",
-                            op1, op2
-                        )
-                        .to_string(),
-                    ));
-                }
-                stack_value
+                let val = StackValue::Boolean(!self.eval_eq()?.as_bool()?);
+                self.stack.push(val);
+                val
             }
             BinaryOp::LogicalAnd => {
                 let op1 = self.stack_pop()?;
@@ -230,7 +204,6 @@ impl Calc {
                 let stack_value;
                 if op1.is_same_type(&op2) {
                     stack_value = StackValue::Boolean(op1.as_bool()? || op2.as_bool()?);
-                    self.stack.push(stack_value)
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
@@ -245,6 +218,25 @@ impl Calc {
         };
         self.stack_push(val);
         Ok(Some(val))
+    }
+
+    fn eval_eq(&mut self) -> Result<StackValue, InterpError> {
+        let op1 = self.stack_pop()?;
+        let op2 = self.stack_pop()?;
+        let stack_value;
+        if op1.is_same_type(&op2) {
+            stack_value = StackValue::Boolean(op1 == op2);
+            self.stack.push(stack_value)
+        } else {
+            return Err(InterpError::EvalError(
+                format!(
+                    "Operand {} and Operand {} cannot be applied to logical LogicalOr operation",
+                    op1, op2
+                )
+                .to_string(),
+            ));
+        }
+        Ok(stack_value)
     }
 
     pub fn eval(
@@ -306,10 +298,7 @@ impl Calc {
                     block,
                     alternative,
                 } => {
-                    if let Ok(Some(EvalResult::Value(StackValue::Boolean(val)))) =
-                        self.eval(condition, scope)
-                    {
-                        // dbg!("Conditional Block {}", &block);
+                    if let Ok(Some(EvalResult::Value(StackValue::Boolean(val)))) = self.eval(condition, scope) {
                         if val {
                             self.eval(block, scope)?;
                         } else if let Some(alt) = alternative {

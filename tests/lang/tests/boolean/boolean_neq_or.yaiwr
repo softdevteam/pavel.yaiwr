@@ -1,0 +1,7 @@
+// Run-time:
+//    stdout: true
+//    stderr:
+
+let a = false; 
+
+println(2 != 1 || a);

@@ -90,7 +90,7 @@ let _f = false;
 | Symbol |  Meaning  | Example |
 |:-----|:--------:|------:|
 | ==   | Equal | `1 == 2`|
-| !=   | Not Equal | `2 < 1`|
+| !=   | Not Equal | `2 != 1`|
 | \|\|   | Or | `true \|\| false`|
 | &&   | And | `true && false`|
 
@@ -156,8 +156,6 @@ let y = 1 * _x;
 ```
 
 ### Conditionals
-
-Conditional statements allow a block of code to be executed if a condition is true or if specified, execution of an alternative block. 
 
 #### if...else statements
 
