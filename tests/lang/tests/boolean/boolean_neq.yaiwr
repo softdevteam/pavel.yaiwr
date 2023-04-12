@@ -1,0 +1,5 @@
+// Run-time:
+//    stdout: false 
+//    stderr: 
+
+println(1 != 1);

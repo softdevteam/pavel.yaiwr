@@ -162,9 +162,73 @@ impl Calc {
                 scope.var_store.insert(id.to_string(), val);
                 val
             }
+            BinaryOp::Equal => {
+                let val = self.eval_eq()?;
+                self.stack.push(val);
+                val
+            }
+            BinaryOp::NotEqual => {
+                let val = StackValue::Boolean(!self.eval_eq()?.as_bool()?);
+                self.stack.push(val);
+                val
+            }
+            BinaryOp::LogicalAnd => {
+                let op1 = self.stack_pop()?;
+                let op2 = self.stack_pop()?;
+                let stack_value;
+                if op1.is_same_type(&op2) {
+                    stack_value = StackValue::Boolean(op1.as_bool()? && op2.as_bool()?);
+                    self.stack.push(stack_value)
+                } else {
+                    return Err(InterpError::EvalError(
+                        format!(
+                            "Operand {} and Operand {} cannot be applied to logical LogicalAnd operation",
+                            op1, op2
+                        )
+                        .to_string(),
+                    ));
+                }
+                stack_value
+            }
+            BinaryOp::LogicalOr => {
+                let op1 = self.stack_pop()?;
+                let op2 = self.stack_pop()?;
+                let stack_value;
+                if op1.is_same_type(&op2) {
+                    stack_value = StackValue::Boolean(op1.as_bool()? || op2.as_bool()?);
+                } else {
+                    return Err(InterpError::EvalError(
+                        format!(
+                            "Operand {} and Operand {} cannot be applied to logical LogicalOr operation",
+                            op1, op2
+                        )
+                        .to_string(),
+                    ));
+                }
+                stack_value
+            }
         };
         self.stack_push(val);
         Ok(Some(val))
+    }
+
+    fn eval_eq(&mut self) -> Result<StackValue, InterpError> {
+        let op1 = self.stack_pop()?;
+        let op2 = self.stack_pop()?;
+        let stack_value;
+        if op1.is_same_type(&op2) {
+            stack_value = StackValue::Boolean(op1 == op2);
+            self.stack.push(stack_value)
+        } else {
+            return Err(InterpError::EvalError(
+                format!(
+                    "Operand {} and Operand {} cannot be applied to logical LogicalOr operation",
+                    op1, op2
+                )
+                .to_string(),
+            ));
+        }
+        Ok(stack_value)
     }
 
     pub fn eval(
@@ -219,6 +283,19 @@ impl Calc {
                 }
                 Instruction::BinaryOp { op } => {
                     self.eval_binary_op(op, scope)?;
+                }
+                Instruction::Conditional {
+                    condition,
+                    block,
+                    alternative,
+                } => {
+                    if let Ok(Some(StackValue::Boolean(val))) = self.eval(condition, scope) {
+                        if val {
+                            self.eval(block, scope)?;
+                        } else if let Some(alt) = alternative {
+                            self.eval(alt, scope)?;
+                        }
+                    }
                 }
             }
         }

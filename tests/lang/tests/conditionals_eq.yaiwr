@@ -1,0 +1,11 @@
+// Run-time:
+//    stdout: 2
+//    stderr:
+
+if (1 == 100){
+    println(1);
+}
+
+if (1 != 2){
+    println(2);
+}

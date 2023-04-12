@@ -103,5 +103,54 @@ pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
             })
         }
         AstNode::Empty => { /* DO NOTHING */ }
+        AstNode::Conditional {
+            condition: ast_condition,
+            block: ast_block,
+            alternative: ast_alternative,
+        } => {
+            let condition = &mut vec![];
+            to_bytecode(*ast_condition, condition);
+
+            let block = block_to_bytecode(ast_block);
+
+            let mut alternative = None;
+            if let Some(alt) = ast_alternative {
+                alternative = Some(block_to_bytecode(alt));
+            }
+
+            prog.push(Instruction::Conditional {
+                condition: condition.to_vec(),
+                block,
+                alternative,
+            })
+        }
+        AstNode::Equal { lhs, rhs } => {
+            to_bytecode(*lhs, prog);
+            to_bytecode(*rhs, prog);
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::Equal,
+            })
+        }
+        AstNode::NotEqual { lhs, rhs } => {
+            to_bytecode(*lhs, prog);
+            to_bytecode(*rhs, prog);
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::NotEqual,
+            })
+        }
+        AstNode::LogicalAnd { lhs, rhs } => {
+            to_bytecode(*lhs, prog);
+            to_bytecode(*rhs, prog);
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::LogicalAnd,
+            })
+        }
+        AstNode::LogicalOr { lhs, rhs } => {
+            to_bytecode(*lhs, prog);
+            to_bytecode(*rhs, prog);
+            prog.push(Instruction::BinaryOp {
+                op: BinaryOp::LogicalOr,
+            })
+        }
     }
 }
