@@ -1,12 +1,27 @@
-use std::fmt::{Display, Error, Formatter};
+use std::{
+    fmt::{Display, Error, Formatter},
+    mem::discriminant,
+};
 
 use crate::err::InterpError;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StackValue {
     Integer(u64),
     Boolean(bool),
 }
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Jump {
+    Return,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum EvalResult {
+    Value(StackValue),
+    Halt(Jump),
+}
+
 impl StackValue {
     pub fn as_int(&self) -> Result<u64, InterpError> {
         match self {
@@ -23,6 +38,10 @@ impl StackValue {
                 format!("Expected StackValue Boolean, got {}!", a).to_string(),
             )),
         }
+    }
+
+    pub fn is_same_type(&self, other: &Self) -> bool {
+        discriminant(self) == discriminant(other)
     }
 }
 
@@ -42,6 +61,10 @@ pub enum BinaryOp {
     GreaterThan,
     Add,
     Mul,
+    Equal,
+    NotEqual,
+    LogicalAnd,
+    LogicalOr,
     Assign { id: String },
 }
 
@@ -52,7 +75,11 @@ impl Display for BinaryOp {
             BinaryOp::GreaterThan => f.write_str("GreaterThan"),
             BinaryOp::Add => f.write_str("Add"),
             BinaryOp::Mul => f.write_str("Mul"),
-            BinaryOp::Assign { id: _ } => f.write_str("Assign"),
+            BinaryOp::Assign { .. } => f.write_str("Assign"),
+            BinaryOp::Equal => f.write_str("Equal"),
+            BinaryOp::NotEqual => f.write_str("NotEqual"),
+            BinaryOp::LogicalAnd => f.write_str("LogicalAnd"),
+            BinaryOp::LogicalOr => f.write_str("LogicalOr"),
         }
     }
 }
@@ -81,21 +108,27 @@ pub enum Instruction {
         id: String,
         args: Vec<Vec<Instruction>>,
     },
+    Conditional {
+        condition: Vec<Instruction>,
+        block: Vec<Instruction>,
+        alternative: Option<Vec<Instruction>>,
+    },
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         match self {
+            Instruction::Conditional { .. } => f.write_str("Conditional"),
             Instruction::Push { value: _ } => f.write_str("Push"),
             Instruction::PrintLn => f.write_str("PrintLn"),
-            Instruction::Load { id: _ } => f.write_str("Load"),
-            Instruction::Return { block: _ } => f.write_str("Return"),
+            Instruction::Load { .. } => f.write_str("Load"),
+            Instruction::Return { .. } => f.write_str("Return"),
             Instruction::Function {
                 id: _,
                 params: _,
                 block: _,
             } => f.write_str("Function"),
-            Instruction::FunctionCall { id: _, args: _ } => f.write_str("FunctionCall"),
+            Instruction::FunctionCall { .. } => f.write_str("FunctionCall"),
             Instruction::BinaryOp { op } => f.write_str(format!("BinaryOp({})", op).as_str()),
         }
     }

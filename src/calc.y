@@ -8,11 +8,29 @@ StatementList -> Result<Vec<AstNode>, ()>:
     ;
 
 
+SelectionStatement -> Result<AstNode, ()>:
+    'IF' '(' Expression ')' '{' StatementList '}' { 
+        Ok(AstNode::Conditional{
+            condition:  Box::new($3?),
+            block: $6?,
+            alternative: None
+        }) 
+    }
+    | 'IF' '(' Expression ')' '{' StatementList '}' 'ELSE' '{' StatementList '}' {  
+        Ok(AstNode::Conditional{
+            condition:  Box::new($3?),
+            block: $6?,
+            alternative: Some($10?)
+        }) 
+    }
+    ;
+
 Statement -> Result<AstNode, ()>:
     ExpressionStatement { $1 }
     | FunctionDefinition { $1 }
+    | SelectionStatement { $1 }
     | Builtins { $1 }
-    | "RETURN" Expression ";" { Ok(AstNode::Return{ block: Box::new($2?) }) }
+    | 'RETURN' Expression ';' { Ok(AstNode::Return{ block: Box::new($2?) }) }
     ;
 
 ExpressionStatement -> Result<AstNode, ()>:
@@ -36,10 +54,37 @@ RelationalExpression -> Result<AstNode, ()>:
     }
     ;
 
+EqualityExpression -> Result<AstNode, ()>: 
+    RelationalExpression { $1 }
+    | EqualityExpression 'EQEQ' RelationalExpression { 
+        Ok(AstNode::Equal { lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
+	| EqualityExpression 'NOTEQ' RelationalExpression { 
+        Ok(AstNode::NotEqual { lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
+    ;
+
+LogincalAndExpression -> Result<AstNode, ()>:
+    EqualityExpression { $1 }
+    | LogincalAndExpression 'AND' EqualityExpression { 
+        Ok(AstNode::LogicalAnd{ lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
+    ;
+
+LogincalOrExpression -> Result<AstNode, ()>:
+    LogincalAndExpression { $1 }
+    | LogincalOrExpression 'OR' LogincalAndExpression { 
+        Ok(AstNode::LogicalOr{ lhs: Box::new($1?), rhs: Box::new($3?) })
+    }
+    ;
+    
+ConditionalExpression -> Result<AstNode, ()>:
+	LogincalOrExpression { $1 }
+	;
 
 AssignmentExpression -> Result<AstNode, ()>:
-    RelationalExpression { $1 }
-    | 'LET' UnaryExpression "=" AssignmentExpression {
+    ConditionalExpression { $1 }
+    | 'LET' UnaryExpression '=' AssignmentExpression {
         match $2.map_err(|_| ())? {
             AstNode::ID { value } => {
                 Ok(AstNode::Assign { id: value, rhs: Box::new($4?) })
@@ -83,7 +128,7 @@ PostfixExpression -> Result<AstNode, ()>:
         }
    }
   ;
-
+    
 ArgumentExpressionList -> Result<Vec<AstNode>, ()>:
     AssignmentExpression {  Ok(vec![$1.map_err(|_| ())?]) }
     | ArgumentExpressionList ',' AssignmentExpression { append($1.map_err(|_| ())?, $3.map_err(|_| ())?)  }
@@ -149,7 +194,6 @@ fn parse_int(s: &str) -> Result<AstNode, ()> {
         }
     }
 }
-
 
 fn parse_boolean(s: &str) -> Result<AstNode, ()> {
     match s.parse::<bool>() {

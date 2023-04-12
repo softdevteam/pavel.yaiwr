@@ -1,0 +1,8 @@
+// Run-time:
+//    stdout: true
+//    stderr:
+
+let a = true; 
+let b = false; 
+
+println(a || b);

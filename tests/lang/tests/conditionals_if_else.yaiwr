@@ -1,0 +1,12 @@
+// Run-time:
+//    stdout: 2
+//    stderr:
+
+let flag = false;
+
+if (flag){
+    println(1)
+}else {
+    println(2)
+}
+
