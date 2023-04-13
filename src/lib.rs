@@ -42,6 +42,11 @@ impl Calc {
     }
 
     pub fn from_str(&self, input: &str) -> Result<Vec<AstNode>, InterpError> {
+        let lexer_def = calc_l::lexerdef();
+        let lexer = lexer_def.lexer(input);
+        let (ast_exp, errs) = calc_y::parse(&lexer);
+
+        let err_msg = self.get_parse_err(&lexer, errs);
         if err_msg.is_empty() == false {
             return Err(InterpError::ParseError(err_msg));
         }
