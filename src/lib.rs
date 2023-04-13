@@ -172,6 +172,11 @@ impl Calc {
                 scope.set_var(id.to_string(), val);
                 val
             }
+            BinaryOp::Declare { id } => {
+                let value = StackValue::Uninitialised;
+                scope.set_var(id.to_string(), value);
+                value
+            },
             BinaryOp::Equal => {
                 let val = self.eval_eq()?;
                 self.stack.push(val);
