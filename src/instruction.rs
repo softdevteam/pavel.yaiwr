@@ -12,14 +12,14 @@ pub enum StackValue {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Jump {
+pub enum JumpInstruction {
     Return,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EvalResult {
     Value(StackValue),
-    Halt(Jump),
+    Jump(JumpInstruction),
 }
 
 impl StackValue {

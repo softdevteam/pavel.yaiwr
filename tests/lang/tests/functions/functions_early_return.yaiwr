@@ -1,0 +1,10 @@
+// Run-time:
+//    stdout: true
+//    stderr:
+
+fun get_bool (){ 
+    return true;
+    return false; // should not be executed
+}
+
+println(get_bool());
