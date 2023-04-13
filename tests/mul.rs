@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use yaiwr::{
-        instruction::{BinaryOp, Instruction, StackValue, EvalResult},
+        instruction::{BinaryOp, EvalResult, Instruction, StackValue},
         scope::Scope,
         Calc,
     };

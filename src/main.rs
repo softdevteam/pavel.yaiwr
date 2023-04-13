@@ -3,7 +3,7 @@ use std::{
     env, fs,
     io::{self, stdout, BufRead, Write},
 };
-use yaiwr::{err::InterpError, instruction::{EvalResult}, scope::Scope, Calc};
+use yaiwr::{err::InterpError, instruction::EvalResult, scope::Scope, Calc};
 
 fn main() {
     env_logger::init();
@@ -79,9 +79,7 @@ fn eval_statement(
 
             debug!("Bytecode: {:#?}", &bytecode);
             match calc.eval(&bytecode, scope) {
-                Ok(eval_result) => {
-                    return Ok(eval_result)
-                }
+                Ok(eval_result) => return Ok(eval_result),
                 Err(e) => {
                     return Err(e);
                 }

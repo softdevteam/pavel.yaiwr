@@ -2,7 +2,7 @@
 mod tests {
     use yaiwr::{
         err::InterpError,
-        instruction::{BinaryOp, Instruction, EvalResult, StackValue},
+        instruction::{BinaryOp, EvalResult, Instruction, StackValue},
         scope::Scope,
         Calc,
     };

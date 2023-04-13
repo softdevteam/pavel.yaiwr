@@ -1,7 +1,11 @@
 #[cfg(test)]
 
 mod tests {
-    use yaiwr::{instruction::{StackValue, EvalResult}, scope::Scope, Calc};
+    use yaiwr::{
+        instruction::{EvalResult, StackValue},
+        scope::Scope,
+        Calc,
+    };
 
     #[test]
     fn eval_mul_and_plus_expressions() {

@@ -18,6 +18,8 @@ pub mod scope;
 use ast::AstNode;
 use err::InterpError;
 
+use crate::instruction::JumpInstruction;
+
 pub struct Calc {
     fun_store: HashMap<String, Instruction>,
     stack: Vec<StackValue>,
@@ -117,7 +119,7 @@ impl Calc {
 
                 let mut arg_values = vec![];
                 for a in args {
-                    if let EvalResult::Value(val) = a{
+                    if let EvalResult::Value(val) = a {
                         arg_values.push(val);
                     }
                 }
@@ -252,7 +254,7 @@ impl Calc {
                     if let Some(EvalResult::Value(v)) = val {
                         self.stack_push(v);
                     }
-                    break;
+                    return Ok(Some(EvalResult::Jump(JumpInstruction::Return {})));
                 }
                 Instruction::Function {
                     block: body,
@@ -298,19 +300,29 @@ impl Calc {
                     block,
                     alternative,
                 } => {
-                    if let Ok(Some(EvalResult::Value(StackValue::Boolean(val)))) = self.eval(condition, scope) {
+                    if let Ok(Some(EvalResult::Value(StackValue::Boolean(val)))) =
+                        self.eval(condition, scope)
+                    {
+                        let mut block_result = None;
                         if val {
-                            self.eval(block, scope)?;
+                            block_result = self.eval(block, scope)?;
                         } else if let Some(alt) = alternative {
-                            self.eval(alt, scope)?;
+                            block_result = self.eval(alt, scope)?;
+                        }
+                        if let Some(EvalResult::Jump(JumpInstruction::Return)) = block_result {
+                            break;
                         }
                     }
                 }
             }
         }
+        let result;
         if self.stack.is_empty() {
-            return Ok(None);
+            result = Ok(None);
+        } else {
+            result = Ok(Some(EvalResult::Value(self.stack.pop().unwrap())));
         }
-        return Ok(Some(EvalResult::Value(self.stack.pop().unwrap())));
+        debug!("eval:result {:?}", &result);
+        return result;
     }
 }
