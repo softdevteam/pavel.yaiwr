@@ -211,6 +211,17 @@ Example:
 ```
 add(1,2)
 ```
+#### Recursion
+
+Example:
+```
+fun add (x){ 
+    if (x < 10) {
+        return add(x + 1);
+    }
+    return x;
+}
+```
 
 #### Function Scope
 
