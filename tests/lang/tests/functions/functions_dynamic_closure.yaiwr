@@ -1,0 +1,22 @@
+// Run-time:
+//    stdout: 3
+//    stderr:
+
+fun bool_to_int(b){
+    if (b){
+        return 1;
+    }
+    return 2;
+}
+
+fun f1 (){ 
+    let flag = true;
+    fun f2(){
+        return bool_to_int(flag);
+    }
+    let f2_result = f2();
+    let flag = false;
+    return f2_result + f2();
+}
+
+println(f1());
