@@ -42,11 +42,6 @@ impl Calc {
     }
 
     pub fn from_str(&self, input: &str) -> Result<Vec<AstNode>, InterpError> {
-        let lexer_def = calc_l::lexerdef();
-        let lexer = lexer_def.lexer(input);
-        let (ast_exp, errs) = calc_y::parse(&lexer);
-
-        let err_msg = self.get_parse_err(&lexer, errs);
         if err_msg.is_empty() == false {
             return Err(InterpError::ParseError(err_msg));
         }
@@ -286,7 +281,7 @@ impl Calc {
                 }
                 Instruction::Push { value } => self.stack.push(*value),
                 Instruction::PrintLn => {
-                    println!("{}", self.stack.pop().unwrap());
+                    println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
                     let val = scope.get_var(id)?;
@@ -320,7 +315,8 @@ impl Calc {
         if self.stack.is_empty() {
             result = Ok(None);
         } else {
-            result = Ok(Some(EvalResult::Value(self.stack.pop().unwrap())));
+            let val = self.stack_pop()?;
+            result = Ok(Some(EvalResult::Value(val)));
         }
         debug!("eval:result {:?}", &result);
         return result;
