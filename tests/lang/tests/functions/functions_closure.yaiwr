@@ -1,0 +1,17 @@
+// Run-time:
+//    stdout: 6
+//    stderr:
+
+let global_scope_var = 1;
+
+
+fun f1 (){ 
+    let f1_scope_var = 2;
+    fun f2(){
+        let f2_scope_var = 3;
+        return global_scope_var + f1_scope_var + f2_scope_var;
+    }
+    return f2();
+}
+
+println(f1());
