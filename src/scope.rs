@@ -3,14 +3,16 @@ use std::collections::HashMap;
 use crate::{err::InterpError, instruction::StackValue};
 
 #[derive(Debug)]
-pub struct Scope {
-    pub var_store: HashMap<String, StackValue>,
+pub struct Scope<'a> {
+    var_store: HashMap<String, StackValue>,
+    outter_scope: Option<&'a Scope<'a>>,
 }
 
-impl Scope {
+impl <'a> Scope <'a> {
     pub fn new() -> Self {
         Scope {
             var_store: HashMap::new(),
+            outter_scope: None
         }
     }
 
@@ -24,9 +26,10 @@ impl Scope {
         self.var_store.insert(id, val)
     }
 
-    pub fn from_scope(other: &Scope) -> Self {
+    pub fn from_scope(other: &'a Scope) -> Self {
         let mut scope = Scope {
             var_store: HashMap::new(),
+            outter_scope: Some(other),
         };
         for (k, v) in other.var_store.iter() {
             scope.set_var(k.to_string(), *v);

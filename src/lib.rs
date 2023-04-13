@@ -159,7 +159,7 @@ impl Calc {
             }
             BinaryOp::Assign { id } => {
                 let val = self.stack_pop()?;
-                scope.var_store.insert(id.to_string(), val);
+                scope.set_var(id.to_string(), val);
                 val
             }
             BinaryOp::Equal => {
