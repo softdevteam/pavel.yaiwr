@@ -1,5 +1,5 @@
 use bytecode::block_to_bytecode;
-use instruction::{BinaryOp, Instruction, StackValue};
+use instruction::{BinaryOp, EvalResult, Instruction, StackValue};
 use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
@@ -17,6 +17,8 @@ pub mod scope;
 
 use ast::AstNode;
 use err::InterpError;
+
+use crate::instruction::JumpInstruction;
 
 pub struct Calc {
     fun_store: HashMap<String, Instruction>,
@@ -40,11 +42,6 @@ impl Calc {
     }
 
     pub fn from_str(&self, input: &str) -> Result<Vec<AstNode>, InterpError> {
-        let lexer_def = calc_l::lexerdef();
-        let lexer = lexer_def.lexer(input);
-        let (ast_exp, errs) = calc_y::parse(&lexer);
-
-        let err_msg = self.get_parse_err(&lexer, errs);
         if err_msg.is_empty() == false {
             return Err(InterpError::ParseError(err_msg));
         }
@@ -78,7 +75,7 @@ impl Calc {
         &mut self,
         args: &Vec<Vec<Instruction>>,
         scope: &mut Scope,
-    ) -> Result<Vec<StackValue>, InterpError> {
+    ) -> Result<Vec<EvalResult>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
             match self.eval(arg_set, scope) {
@@ -92,10 +89,10 @@ impl Calc {
 
     fn eval_function_call(
         &mut self,
-        args: &Vec<StackValue>,
+        args: &Vec<EvalResult>,
         id: &String,
         outer_scope: &mut Scope,
-    ) -> Result<Option<StackValue>, InterpError> {
+    ) -> Result<Option<EvalResult>, InterpError> {
         let function = self
             .fun_store
             .get(id)
@@ -114,7 +111,15 @@ impl Calc {
                     )));
                 }
                 let func_scope = &mut Scope::from_scope(outer_scope);
-                func_scope.assign(HashMap::from_iter(params.iter().zip(args)));
+
+                let mut arg_values = vec![];
+                for a in args {
+                    if let EvalResult::Value(val) = a {
+                        arg_values.push(val);
+                    }
+                }
+
+                func_scope.assign(HashMap::from_iter(params.iter().zip(arg_values)));
                 return self.eval(&body.clone(), func_scope);
             }
             _ => {
@@ -235,15 +240,16 @@ impl Calc {
         &mut self,
         instructions: &Vec<Instruction>,
         scope: &mut Scope,
-    ) -> Result<Option<StackValue>, InterpError> {
+    ) -> Result<Option<EvalResult>, InterpError> {
         for instruction in instructions {
             debug!("eval: {:?}. scope: {:?}", instruction, scope);
             match instruction {
                 Instruction::Return { block } => {
                     let val = self.eval(block, scope)?;
-                    if let Some(x) = val {
-                        self.stack_push(x);
+                    if let Some(EvalResult::Value(v)) = val {
+                        self.stack_push(v);
                     }
+                    return Ok(Some(EvalResult::Jump(JumpInstruction::Return {})));
                 }
                 Instruction::Function {
                     block: body,
@@ -269,13 +275,13 @@ impl Calc {
                 Instruction::FunctionCall { id, args } => {
                     let arg_list = self.eval_function_args(&args, scope)?;
                     let res = self.eval_function_call(&arg_list, id, scope)?;
-                    if let Some(x) = res {
+                    if let Some(EvalResult::Value(x)) = res {
                         self.stack_push(x);
                     }
                 }
                 Instruction::Push { value } => self.stack.push(*value),
                 Instruction::PrintLn => {
-                    println!("{}", self.stack.pop().unwrap());
+                    println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
                     let val = scope.get_var(id)?;
@@ -289,19 +295,30 @@ impl Calc {
                     block,
                     alternative,
                 } => {
-                    if let Ok(Some(StackValue::Boolean(val))) = self.eval(condition, scope) {
+                    if let Ok(Some(EvalResult::Value(StackValue::Boolean(val)))) =
+                        self.eval(condition, scope)
+                    {
+                        let mut block_result = None;
                         if val {
-                            self.eval(block, scope)?;
+                            block_result = self.eval(block, scope)?;
                         } else if let Some(alt) = alternative {
-                            self.eval(alt, scope)?;
+                            block_result = self.eval(alt, scope)?;
+                        }
+                        if let Some(EvalResult::Jump(JumpInstruction::Return)) = block_result {
+                            break;
                         }
                     }
                 }
             }
         }
+        let result;
         if self.stack.is_empty() {
-            return Ok(None);
+            result = Ok(None);
+        } else {
+            let val = self.stack_pop()?;
+            result = Ok(Some(EvalResult::Value(val)));
         }
-        return Ok(Some(self.stack.pop().unwrap()));
+        debug!("eval:result {:?}", &result);
+        return result;
     }
 }
