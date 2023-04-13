@@ -1,0 +1,7 @@
+// Run-time:
+//    status: error
+
+fun add_10 (x){ 
+    return add_10(x+1);
+}
+println(add_10(1));

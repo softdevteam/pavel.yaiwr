@@ -2,7 +2,7 @@
 mod tests {
     use yaiwr::{
         err::InterpError,
-        instruction::{BinaryOp, Instruction, StackValue},
+        instruction::{BinaryOp, EvalResult, Instruction, StackValue},
         scope::Scope,
         Calc,
     };
@@ -11,7 +11,7 @@ mod tests {
         calc: &mut Calc,
         input: &str,
         scope: &mut Scope,
-    ) -> Result<Option<StackValue>, InterpError> {
+    ) -> Result<Option<EvalResult>, InterpError> {
         let ast = calc.from_str(input).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         return calc.eval(&bytecode, scope);
@@ -48,7 +48,7 @@ mod tests {
         eval_prog(calc, "fun add2 (_p1){ return _p1 + 2; }", scope).unwrap();
         assert_eq!(
             eval_prog(calc, "add2(add1(1));", scope).unwrap().unwrap(),
-            StackValue::Integer(4)
+            EvalResult::Value(StackValue::Integer(4))
         );
     }
 
@@ -64,7 +64,7 @@ mod tests {
         .unwrap();
         assert_eq!(
             eval_prog(calc, "add(1,2,3);", scope).unwrap().unwrap(),
-            StackValue::Integer(6)
+            EvalResult::Value(StackValue::Integer(6))
         );
     }
 
