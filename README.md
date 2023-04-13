@@ -266,7 +266,7 @@ fun f() {
 
 [x] Conditionals
 
-[ ] Closures
+[x] Closures
 
 [ ] Compile variable names to integers
 
