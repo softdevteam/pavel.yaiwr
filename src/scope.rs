@@ -8,16 +8,36 @@ pub struct Scope<'a> {
     outter_scope: Option<&'a Scope<'a>>,
 }
 
-impl <'a> Scope <'a> {
+impl<'a> Scope<'a> {
     pub fn new() -> Self {
         Scope {
             var_store: HashMap::new(),
-            outter_scope: None
+            outter_scope: None,
+        }
+    }
+
+    fn get_scope_var(&self, scope: &'a Scope, id: &String) -> Result<&'a Scope<'a>, InterpError> {
+        let var = scope
+            .var_store
+            .get(id);
+
+        match var {
+            Some(_) => Ok(scope),
+            None => {
+                if let Some(s) = scope.outter_scope {
+                    scope.get_scope_var(s, id)
+                } else {
+                    Err(InterpError::VariableNotFound(id.to_string()))
+                }
+            }
         }
     }
 
     pub fn get_var(&self, id: &String) -> Result<&StackValue, InterpError> {
-        self.var_store
+        let scope = self.get_scope_var(self, id)?;
+
+        scope
+            .var_store
             .get(id)
             .ok_or(InterpError::VariableNotFound(id.to_string()))
     }
