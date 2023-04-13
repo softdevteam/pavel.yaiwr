@@ -223,6 +223,25 @@ fun add (x){
 }
 ```
 
+#### Closures
+
+Example:
+```
+let g = 1;
+
+fun f1 (){ 
+    let f = 2;
+    fun f2(){
+        let ff = 3;
+        return g + f + ff;
+    }
+    return f2();
+}
+
+println(f1());
+
+```
+
 #### Function Scope
 
 - Variables declared within a function, become "local" to the function.
