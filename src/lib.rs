@@ -4,7 +4,7 @@ use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
-use std::collections::HashMap;
+use std::{collections::HashMap, cell::RefCell};
 
 lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
@@ -76,10 +76,10 @@ impl Calc {
         return block_to_bytecode(ast);
     }
 
-    fn eval_function_args(
+    fn eval_function_args<'a>(
         &mut self,
         args: &Vec<Vec<Instruction>>,
-        scope: &mut Scope,
+        scope: &'a RefCell<Box<Scope<'a>>>,
     ) -> Result<Vec<EvalResult>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
@@ -92,11 +92,11 @@ impl Calc {
         return Ok(result);
     }
 
-    fn eval_function_call(
+    fn eval_function_call<'a>(
         &mut self,
         args: &Vec<EvalResult>,
         id: &String,
-        outer_scope: &mut Scope,
+        outer_scope: &'a RefCell<Box<Scope<'a>>>,
     ) -> Result<Option<EvalResult>, InterpError> {
         let function = self
             .fun_store
@@ -115,8 +115,10 @@ impl Calc {
                         args.len()
                     )));
                 }
-                let func_scope = &mut Scope::from_scope(outer_scope);
-
+                // bind args
+                // let func_scope = &mut Scope::from_scope(outer_scope);
+                let s = Scope::from_scope(outer_scope);
+                let scope = &RefCell::new(Box::new(s));
                 let mut arg_values = vec![];
                 for a in args {
                     if let EvalResult::Value(val) = a {
@@ -124,8 +126,9 @@ impl Calc {
                     }
                 }
 
-                func_scope.assign(HashMap::from_iter(params.iter().zip(arg_values)));
-                return self.eval(&body.clone(), func_scope);
+                scope.borrow_mut().assign(HashMap::from_iter(params.iter().zip(arg_values)));
+
+                return self.eval(&body.clone(), scope);
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -138,7 +141,7 @@ impl Calc {
     fn eval_binary_op(
         &mut self,
         op: &BinaryOp,
-        scope: &mut Scope,
+        scope: &RefCell<Box<Scope>>,
     ) -> Result<Option<StackValue>, InterpError> {
         let val = match op {
             BinaryOp::LessThan => {
@@ -169,12 +172,12 @@ impl Calc {
             }
             BinaryOp::Assign { id } => {
                 let val = self.stack_pop()?;
-                scope.set_var(id.to_string(), val);
+                scope.borrow_mut().set_var(id.to_string(), val);
                 val
             }
             BinaryOp::Declare { id } => {
                 let value = StackValue::Uninitialised;
-                scope.set_var(id.to_string(), value);
+                scope.borrow_mut().set_var(id.to_string(), value);
                 value
             },
             BinaryOp::Equal => {
@@ -246,13 +249,14 @@ impl Calc {
         Ok(stack_value)
     }
 
-    pub fn eval(
+    pub fn eval<'a>(
         &mut self,
         instructions: &Vec<Instruction>,
-        scope: &mut Scope,
+        scope: &'a RefCell<Box<Scope<'a>>>,
     ) -> Result<Option<EvalResult>, InterpError> {
         for instruction in instructions {
-            debug!("eval: {:?}. scope: {:?}", instruction, scope);
+            // debug!("eval: {:?}. scope: {:?}", instruction, scope);
+            
             match instruction {
                 Instruction::Return { block } => {
                     let val = self.eval(block, scope)?;
@@ -294,8 +298,8 @@ impl Calc {
                     println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
-                    let val = scope.get_var(id)?;
-                    self.stack_push(*val);
+                    let val = scope.borrow().get_var(id)?;
+                    self.stack_push(val);
                 }
                 Instruction::BinaryOp { op } => {
                     self.eval_binary_op(op, scope)?;
