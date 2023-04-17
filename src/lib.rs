@@ -4,7 +4,7 @@ use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
@@ -76,14 +76,14 @@ impl Calc {
         return block_to_bytecode(ast);
     }
 
-    fn eval_function_args<'a>(
+    fn eval_function_args(
         &mut self,
         args: &Vec<Vec<Instruction>>,
-        scope: &mut Box<Scope>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Result<Vec<EvalResult>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
-            match self.eval(arg_set, scope) {
+            match self.eval(arg_set, scope.clone()) {
                 Ok(Some(x)) => result.push(x),
                 Ok(None) => {}
                 Err(e) => return Err(e),
@@ -96,7 +96,7 @@ impl Calc {
         &mut self,
         args: &Vec<EvalResult>,
         id: &String,
-        outer_scope: &mut Box<Scope>,
+        outer_scope: Rc<RefCell<Scope>>,
     ) -> Result<Option<EvalResult>, InterpError> {
         let function = self
             .fun_store
@@ -115,21 +115,24 @@ impl Calc {
                         args.len()
                     )));
                 }
-                // bind args
-                let func_scope = Scope::from_scope(outer_scope.to_owned());
 
-                let scope = &mut Box::new(func_scope);
+                // let scope = &mut Box::new(func_scope);
 
-                let mut arg_values = vec![];
-                for a in args {
-                    if let EvalResult::Value(val) = a {
-                        arg_values.push(val);
+                let func_scope = {
+                    let mut f_scope = Scope::from_scope(outer_scope);
+                    let mut arg_values = vec![];
+                    for a in args {
+                        if let EvalResult::Value(val) = a {
+                            arg_values.push(val);
+                        }
                     }
-                }
+                    // bind args
+                    f_scope.assign(HashMap::from_iter(params.iter().zip(arg_values)));
+                    // func_scope
+                    f_scope
+                };
 
-                scope.assign(HashMap::from_iter(params.iter().zip(arg_values)));
-
-                return self.eval(&body.clone(), scope);
+                return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -142,7 +145,7 @@ impl Calc {
     fn eval_binary_op(
         &mut self,
         op: &BinaryOp,
-        scope: &mut Box<Scope>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Result<Option<StackValue>, InterpError> {
         let val = match op {
             BinaryOp::LessThan => {
@@ -173,11 +176,11 @@ impl Calc {
             }
             BinaryOp::Assign { id } => {
                 let val = self.stack_pop()?;
-                scope.set_var(id.to_string(), val);
+                scope.borrow_mut().set_var(id.to_string(), val);
                 val
             }
             BinaryOp::Declare { id } => {
-                scope.dec_var(id.to_string());
+                scope.borrow_mut().dec_var(id.to_string());
                 StackValue::Uninitialised
             }
             BinaryOp::Equal => {
@@ -250,7 +253,7 @@ impl Calc {
     }
 
     pub fn eval_input(input: String) -> Result<Option<EvalResult>, InterpError> {
-        let scope = &mut Box::new(Scope::new());
+        let scope = Rc::new(RefCell::new(Scope::new()));
         let calc = &mut Calc::new();
         let ast = calc.from_str(input.as_str()).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
@@ -260,14 +263,14 @@ impl Calc {
     pub fn eval(
         &mut self,
         instructions: &Vec<Instruction>,
-        scope: &mut Box<Scope>,
+        scope: Rc<RefCell<Scope>>,
     ) -> Result<Option<EvalResult>, InterpError> {
         for instruction in instructions {
-            debug!("eval: {:?}. scope: {:?}", instruction, scope);
+            debug!("eval: {:?}. scope: {:?}", instruction, scope.clone());
 
             match instruction {
                 Instruction::Return { block } => {
-                    let val = self.eval(block, scope)?;
+                    let val = self.eval(block, scope.clone())?;
                     if let Some(EvalResult::Value(v)) = val {
                         self.stack_push(v);
                     }
@@ -295,8 +298,8 @@ impl Calc {
                     }
                 }
                 Instruction::FunctionCall { id, args } => {
-                    let arg_list = self.eval_function_args(&args, scope)?;
-                    let res = self.eval_function_call(&arg_list, id, scope)?;
+                    let arg_list = self.eval_function_args(&args, scope.clone())?;
+                    let res = self.eval_function_call(&arg_list, id, scope.clone())?;
                     if let Some(EvalResult::Value(x)) = res {
                         self.stack_push(x);
                     }
@@ -305,12 +308,19 @@ impl Calc {
                 Instruction::PrintLn => {
                     println!("{}", self.stack_pop()?);
                 }
-                Instruction::Load { id } => {
-                    let val = scope.to_owned().get_var(id.to_string())?;
-                    self.stack_push(val);
-                }
+                Instruction::Load { id } => match scope.try_borrow() {
+                    Ok(s) => {
+                        let val = s.get_var(id.to_string())?;
+                        self.stack_push(val);
+                    }
+                    Err(e) => {
+                        return Err(InterpError::EvalError(
+                            format!("Cannot borrow scope. Err: {}", e).to_string(),
+                        ))
+                    }
+                },
                 Instruction::BinaryOp { op } => {
-                    self.eval_binary_op(op, scope)?;
+                    self.eval_binary_op(op, scope.clone())?;
                 }
                 Instruction::Conditional {
                     condition,
@@ -318,13 +328,13 @@ impl Calc {
                     alternative,
                 } => {
                     if let Ok(Some(EvalResult::Value(StackValue::Boolean(val)))) =
-                        self.eval(condition, scope)
+                        self.eval(condition, scope.clone())
                     {
                         let mut block_result = None;
                         if val {
-                            block_result = self.eval(block, scope)?;
+                            block_result = self.eval(block, scope.clone())?;
                         } else if let Some(alt) = alternative {
-                            block_result = self.eval(alt, scope)?;
+                            block_result = self.eval(alt, scope.clone())?;
                         }
                         if let Some(EvalResult::Jump(JumpInstruction::Return)) = block_result {
                             break;

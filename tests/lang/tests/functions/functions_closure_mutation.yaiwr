@@ -1,5 +1,5 @@
 // Run-time:
-//    stdout: 9
+//    stdout: 6
 //    stderr:
 
 let global_var = 1;

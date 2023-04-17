@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    
+
     use yaiwr::{
         instruction::{BinaryOp, Instruction, StackValue},
         Calc,

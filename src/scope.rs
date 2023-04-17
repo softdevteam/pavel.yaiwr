@@ -1,11 +1,11 @@
-use std::{collections::HashMap};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::{instruction::StackValue, err::InterpError};
+use crate::{err::InterpError, instruction::StackValue};
 
 #[derive(Debug, Clone)]
 pub struct Scope {
     pub var_store: HashMap<String, StackValue>,
-    pub outter_scope: Option<Box<Scope>>
+    pub outter_scope: Option<Rc<RefCell<Scope>>>,
 }
 
 impl Scope {
@@ -16,10 +16,10 @@ impl Scope {
         }
     }
 
-    pub fn from_scope(other: Box<Scope>) -> Self {
+    pub fn from_scope(outer_scope: Rc<RefCell<Scope>>) -> Self {
         let scope = Scope {
             var_store: HashMap::new(),
-            outter_scope: Some(other),
+            outter_scope: Some(outer_scope),
         };
         return scope;
     }
@@ -36,7 +36,7 @@ impl Scope {
             }
             None => {
                 if let Some(out) = &mut self.outter_scope {
-                    out.set_var(id, val);
+                    out.borrow_mut().set_var(id, val);
                 }
             }
         }
@@ -48,16 +48,16 @@ impl Scope {
         }
     }
 
-    pub fn get_var(self, id: String) -> Result<StackValue, InterpError>{
+    pub fn get_var(&self, id: String) -> Result<StackValue, InterpError> {
         let var = self.var_store.get(&id.clone());
         match var {
             Some(x) => {
                 return Ok(*x);
             }
             None => {
-                if let Some(out) = self.outter_scope {
-                    out.get_var(id)
-                }else{
+                if let Some(out) = self.outter_scope.clone() {
+                    out.borrow().get_var(id)
+                } else {
                     return Err(InterpError::VariableNotFound(id.to_string()));
                 }
             }

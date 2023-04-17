@@ -9,7 +9,7 @@ use crate::err::InterpError;
 pub enum StackValue {
     Integer(u64),
     Boolean(bool),
-    Uninitialised
+    Uninitialised,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
