@@ -299,15 +299,8 @@ fun f() {
 
 [ ] Compile variable names to integers
 
-[ ] Use actions to make an AST on the fly (see e.g. https://github.com/ltratt/pizauth/blob/master/src/config.y)
-
-[ ] Add variable declaration and out-of-parsing-time computation
-
 [ ] Benchmarking
 
-[ ] Revise Rust in general :)
-
-[ ] Add multi-line comments support. See previous PR attempt: https://github.com/softdevteam/pavel.yaiwr/pull/22.
 
 # Terminology
 
