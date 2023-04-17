@@ -1,0 +1,20 @@
+// Run-time:
+//    stdout: 10
+//    stderr:
+
+let g_var = 1;
+
+fun f1 (){
+    let f1_var = 2;
+    fun f2 (){
+        let f2_var = 3;
+        fun f3 (){
+            let f3_var = 4;
+            return f3_var + f2_var + f1_var + g_var;
+        }
+        return f3();    
+    }
+    return f2();
+}
+
+println(f1());

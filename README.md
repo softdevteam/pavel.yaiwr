@@ -225,31 +225,18 @@ fun add (x){
 
 #### Closures
 
-Example 1 (closure read):
-```
-let g = 1;
+Example:
 
-fun f1 (){ 
-    let f = 2;
-    fun f2(){
-        let ff = 3;
-        return g + f + ff;
+```
+let g_var = 1;
+
+fun f1 (){
+    g_var = 2;
+    let f1_var = 2;
+    fun f2 (){
+        return f1_var;
     }
     return f2();
-}
-
-```
-Example 2 (closure write):
-```
-let global_var = 1;
-
-fun f1 (){ 
-    fun f2(){
-        global_var = 3;
-        return 3;
-    }
-    
-    return f2() + global_var;
 }
 
 ```
