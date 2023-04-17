@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use std::cell::RefCell;
 
     use yaiwr::{
         err::InterpError,
@@ -12,7 +11,7 @@ mod tests {
     pub fn eval_prog<'a>(
         calc: &mut Calc,
         input: &str,
-        scope: &'a RefCell<Box<Scope<'a>>>,
+        scope: &mut Box<Scope>,
     ) -> Result<Option<EvalResult>, InterpError> {
         let ast = calc.from_str(input).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
@@ -21,11 +20,11 @@ mod tests {
 
     #[test]
     fn function_call_err() {
-        let scope = RefCell::new(Box::new(Scope::new()));
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
-        eval_prog(calc, "fun add1 (_p1){ return _p1 + 1; }", &scope).unwrap();
+        eval_prog(calc, "fun add1 (_p1){ return _p1 + 1; }", scope).unwrap();
         assert_eq!(
-            eval_prog(calc, "add1();", &scope),
+            eval_prog(calc, "add1();", scope),
             Err(InterpError::EvalError(
                 "Unexpected number of function arguments. Expected: 1, Got: 0".to_string()
             ))
@@ -34,7 +33,7 @@ mod tests {
 
     #[test]
     fn function_undefined_err() {
-        let scope = &RefCell::new(Box::new(Scope::new()));
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         assert_eq!(
             eval_prog(calc, "add1();", scope),
@@ -44,7 +43,7 @@ mod tests {
 
     #[test]
     fn function_composition() {
-        let scope = &RefCell::new(Box::new(Scope::new()));
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         eval_prog(calc, "fun add1 (_p1){ return _p1 + 1; }", scope).unwrap();
         eval_prog(calc, "fun add2 (_p1){ return _p1 + 2; }", scope).unwrap();
@@ -56,11 +55,11 @@ mod tests {
 
     #[test]
     fn function_multiple_params() {
-        let scope = &RefCell::new(Box::new(Scope::new()));
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         eval_prog(
             calc,
-            "fun add (_p1, _p2, _p3){ return _p1 + _p2 +_p3; }",
+            "fun add (p1, p2, p3){ return p1 + p2 +p3; }",
             scope,
         )
         .unwrap();
@@ -72,7 +71,7 @@ mod tests {
 
     #[test]
     fn function_declaration_no_params_bc() {
-        let scope = &RefCell::new(Box::new(Scope::new()));
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         let prog1 = "fun some (){ return 2*2; }";
         let ast = calc.from_str(prog1).unwrap();
@@ -105,7 +104,7 @@ mod tests {
 
     #[test]
     fn function_declaration_with_params_bc() {
-        let scope = &RefCell::new(Box::new(Scope::new()));
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         let prog = "fun add (_p1, _p2){ return _p1 + _p2 + 1; }";
         let ast = calc.from_str(prog).unwrap();
@@ -142,7 +141,7 @@ mod tests {
 
     #[test]
     fn function_declaration_with_params_call_bc() {
-        let scope = &RefCell::new(Box::new(Scope::new()));
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         let prog_func_declaration = "fun add (_p1, _p2){ return _p1 + _p2; }";
         let ast = calc.from_str(prog_func_declaration).unwrap();
@@ -175,7 +174,7 @@ mod tests {
         let prog_func_call = "add(1,2);";
         let ast = calc.from_str(prog_func_call).unwrap();
         let func_call_bc = Calc::ast_to_bytecode(ast);
-        let scope = &RefCell::new(Box::new(Scope::new()));
+        let scope = &mut Box::new(Scope::new());
         calc.eval(&func_call_bc, scope).unwrap();
         match func_call_bc.as_slice() {
             [first] => {
@@ -204,8 +203,6 @@ mod tests {
         let prog_func_declaration = "fun two_plus_two (){ return (2+2); }";
         let ast = calc.from_str(prog_func_declaration).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
-        let scope = &RefCell::new(Box::new(Scope::new()));
-        calc.eval(&func_declare_bc, scope).unwrap();
         match func_declare_bc.as_slice() {
             [first] => {
                 assert_eq!(
@@ -232,8 +229,6 @@ mod tests {
         let prog_func_call = "two_plus_two();";
         let ast = calc.from_str(prog_func_call).unwrap();
         let func_call_bc = Calc::ast_to_bytecode(ast);
-        let scope = &RefCell::new(Box::new(Scope::new()));
-        calc.eval(&func_call_bc, scope).unwrap();
         match func_call_bc.as_slice() {
             [first] => {
                 assert_eq!(

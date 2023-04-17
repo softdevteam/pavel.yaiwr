@@ -4,13 +4,12 @@
 
 let global_scope_var = 1;
 
-
 fun f1 (){ 
     let f1_scope_var = global_scope_var;
     fun f2(){
         return f1_scope_var + 1;
     }
-    let f1_scope_var = 10;
+    f1_scope_var = 10;
     return f2();
 }
 

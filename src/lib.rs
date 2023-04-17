@@ -4,7 +4,7 @@ use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
-use std::{collections::HashMap, cell::RefCell};
+use std::collections::HashMap;
 
 lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
@@ -79,7 +79,7 @@ impl Calc {
     fn eval_function_args<'a>(
         &mut self,
         args: &Vec<Vec<Instruction>>,
-        scope: &'a RefCell<Box<Scope<'a>>>,
+        scope: &mut Box<Scope>,
     ) -> Result<Vec<EvalResult>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
@@ -96,7 +96,7 @@ impl Calc {
         &mut self,
         args: &Vec<EvalResult>,
         id: &String,
-        outer_scope: &'a RefCell<Box<Scope<'a>>>,
+        outer_scope: &mut Box<Scope>,
     ) -> Result<Option<EvalResult>, InterpError> {
         let function = self
             .fun_store
@@ -116,9 +116,10 @@ impl Calc {
                     )));
                 }
                 // bind args
-                // let func_scope = &mut Scope::from_scope(outer_scope);
-                let s = Scope::from_scope(outer_scope);
-                let scope = &RefCell::new(Box::new(s));
+                let func_scope = Scope::from_scope(outer_scope.to_owned());
+
+                let scope = &mut Box::new(func_scope);
+
                 let mut arg_values = vec![];
                 for a in args {
                     if let EvalResult::Value(val) = a {
@@ -126,7 +127,7 @@ impl Calc {
                     }
                 }
 
-                scope.borrow_mut().assign(HashMap::from_iter(params.iter().zip(arg_values)));
+                scope.assign(HashMap::from_iter(params.iter().zip(arg_values)));
 
                 return self.eval(&body.clone(), scope);
             }
@@ -141,7 +142,7 @@ impl Calc {
     fn eval_binary_op(
         &mut self,
         op: &BinaryOp,
-        scope: &RefCell<Box<Scope>>,
+        scope: &mut Box<Scope>,
     ) -> Result<Option<StackValue>, InterpError> {
         let val = match op {
             BinaryOp::LessThan => {
@@ -172,14 +173,13 @@ impl Calc {
             }
             BinaryOp::Assign { id } => {
                 let val = self.stack_pop()?;
-                scope.borrow_mut().set_var(id.to_string(), val);
+                scope.set_var(id.to_string(), val);
                 val
             }
             BinaryOp::Declare { id } => {
-                let value = StackValue::Uninitialised;
-                scope.borrow_mut().set_var(id.to_string(), value);
-                value
-            },
+                scope.dec_var(id.to_string());
+                StackValue::Uninitialised
+            }
             BinaryOp::Equal => {
                 let val = self.eval_eq()?;
                 self.stack.push(val);
@@ -249,14 +249,22 @@ impl Calc {
         Ok(stack_value)
     }
 
-    pub fn eval<'a>(
+    pub fn eval_input(input: String) -> Result<Option<EvalResult>, InterpError> {
+        let scope = &mut Box::new(Scope::new());
+        let calc = &mut Calc::new();
+        let ast = calc.from_str(input.as_str()).unwrap();
+        let bytecode = Calc::ast_to_bytecode(ast);
+        calc.eval(&bytecode, scope)
+    }
+
+    pub fn eval(
         &mut self,
         instructions: &Vec<Instruction>,
-        scope: &'a RefCell<Box<Scope<'a>>>,
+        scope: &mut Box<Scope>,
     ) -> Result<Option<EvalResult>, InterpError> {
         for instruction in instructions {
-            // debug!("eval: {:?}. scope: {:?}", instruction, scope);
-            
+            debug!("eval: {:?}. scope: {:?}", instruction, scope);
+
             match instruction {
                 Instruction::Return { block } => {
                     let val = self.eval(block, scope)?;
@@ -298,7 +306,7 @@ impl Calc {
                     println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
-                    let val = scope.borrow().get_var(id)?;
+                    let val = scope.to_owned().get_var(id.to_string())?;
                     self.stack_push(val);
                 }
                 Instruction::BinaryOp { op } => {
