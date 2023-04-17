@@ -116,21 +116,14 @@ impl Calc {
                     )));
                 }
 
-                // let scope = &mut Box::new(func_scope);
-
-                let func_scope = {
-                    let mut f_scope = Scope::from_scope(outer_scope);
-                    let mut arg_values = vec![];
-                    for a in args {
-                        if let EvalResult::Value(val) = a {
-                            arg_values.push(val);
-                        }
+                let mut func_scope = Scope::from_scope(outer_scope);
+                // bind args and params to funciton scope
+                for (i, arg) in args.iter().enumerate() {
+                    if let EvalResult::Value(val) = arg {
+                        func_scope.dec_var(params[i].clone());
+                        func_scope.set_var(params[i].clone(), *val)?;
                     }
-                    // bind args
-                    f_scope.assign(HashMap::from_iter(params.iter().zip(arg_values)));
-                    // func_scope
-                    f_scope
-                };
+                }
 
                 return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
             }
@@ -176,7 +169,7 @@ impl Calc {
             }
             BinaryOp::Assign { id } => {
                 let val = self.stack_pop()?;
-                scope.borrow_mut().set_var(id.to_string(), val);
+                scope.borrow_mut().set_var(id.to_string(), val)?;
                 val
             }
             BinaryOp::Declare { id } => {

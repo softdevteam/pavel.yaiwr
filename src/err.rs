@@ -9,6 +9,7 @@ pub enum InterpError {
     VariableNotFound(String),
     ProgramFileNotFound(String),
     UndefinedFunction(String),
+    UndeclaredVariable(String),
     EvalError(String),
 }
 
@@ -32,6 +33,9 @@ impl Display for InterpError {
             InterpError::ProgramFileNotFound(file_name) => {
                 f.write_str(format!("Program file: '{}' cannot be found!", file_name).as_str())
             }
+            InterpError::UndeclaredVariable(id) => f.write_str(
+                format!("Cannot reference undeclared variable by '{}' id!", id).as_str(),
+            ),
         }
     }
 }
@@ -46,6 +50,7 @@ impl Error for InterpError {
             InterpError::Numeric(_) => "Numeric",
             InterpError::VariableNotFound(_) => "VariableNotFound",
             InterpError::ProgramFileNotFound(_) => "ProgramFileNotFound",
+            InterpError::UndeclaredVariable(_) => "UndeclaredVariable",
         }
     }
 }
