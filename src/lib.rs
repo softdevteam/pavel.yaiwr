@@ -308,17 +308,10 @@ impl Calc {
                 Instruction::PrintLn => {
                     println!("{}", self.stack_pop()?);
                 }
-                Instruction::Load { id } => match scope.try_borrow() {
-                    Ok(s) => {
-                        let val = s.get_var(id.to_string())?;
-                        self.stack_push(val);
-                    }
-                    Err(e) => {
-                        return Err(InterpError::EvalError(
-                            format!("Cannot borrow scope. Err: {}", e).to_string(),
-                        ))
-                    }
-                },
+                Instruction::Load { id } => {
+                    let val = scope.borrow().get_var(id.to_string())?;
+                    self.stack_push(val);
+                }
                 Instruction::BinaryOp { op } => {
                     self.eval_binary_op(op, scope.clone())?;
                 }
