@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
+    
     use yaiwr::{
         instruction::{BinaryOp, Instruction, StackValue},
-        scope::Scope,
         Calc,
     };
 
@@ -34,19 +34,13 @@ mod tests {
     #[test]
     #[should_panic(expected = "overflowed")]
     fn add_overflow_max_u64() {
-        let calc = &mut Calc::new();
         let input = format!("{}+{};", u64::MAX, 1);
-        let ast = calc.from_str(input.as_str()).unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
-        calc.eval(&bytecode, &mut Scope::new()).unwrap();
+        Calc::eval_input(input).unwrap();
     }
 
     #[test]
     fn add_no_overflow() {
-        let calc = &mut Calc::new();
         let input = format!("{}+{};", u64::MAX - 1, 1);
-        let ast = calc.from_str(input.as_str()).unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
-        calc.eval(&bytecode, &mut Scope::new()).unwrap();
+        Calc::eval_input(input).unwrap();
     }
 }

@@ -9,6 +9,7 @@ use crate::err::InterpError;
 pub enum StackValue {
     Integer(u64),
     Boolean(bool),
+    Uninitialised
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -50,6 +51,7 @@ impl Display for StackValue {
         let a = match self {
             StackValue::Integer(val) => f.write_str(format!("{}", val).as_str()),
             StackValue::Boolean(val) => f.write_str(format!("{}", val).as_str()),
+            StackValue::Uninitialised => f.write_str(format!("Uninitialised").as_str()),
         };
         return a;
     }
@@ -66,6 +68,7 @@ pub enum BinaryOp {
     LogicalAnd,
     LogicalOr,
     Assign { id: String },
+    Declare { id: String },
 }
 
 impl Display for BinaryOp {
@@ -80,6 +83,7 @@ impl Display for BinaryOp {
             BinaryOp::NotEqual => f.write_str("NotEqual"),
             BinaryOp::LogicalAnd => f.write_str("LogicalAnd"),
             BinaryOp::LogicalOr => f.write_str("LogicalOr"),
+            BinaryOp::Declare { .. } => f.write_str("Declare"),
         }
     }
 }

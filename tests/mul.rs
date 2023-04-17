@@ -8,22 +8,24 @@ mod tests {
 
     #[test]
     fn eval_mul_expression() {
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         let ast = calc.from_str("2*2;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         assert_eq!(
-            calc.eval(&bytecode, &mut Scope::new()).unwrap(),
+            calc.eval(&bytecode, scope).unwrap(),
             Some(EvalResult::Value(StackValue::Integer(4)))
         );
     }
 
     #[test]
     fn eval_mul_expressions() {
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         let ast = calc.from_str("2*2*2;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         assert_eq!(
-            calc.eval(&bytecode, &mut Scope::new()).unwrap(),
+            calc.eval(&bytecode, scope).unwrap(),
             Some(EvalResult::Value(StackValue::Integer(8)))
         );
     }
@@ -56,19 +58,21 @@ mod tests {
     #[test]
     #[should_panic(expected = "overflowed")]
     fn mul_overflow() {
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         let input = format!("{}*{};", u64::MAX, 2);
         let ast = calc.from_str(input.as_str()).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        calc.eval(&bytecode, &mut Scope::new()).unwrap();
+        calc.eval(&bytecode, scope).unwrap();
     }
 
     #[test]
     fn mul_no_overflow() {
+        let scope = &mut Box::new(Scope::new());
         let calc = &mut Calc::new();
         let input = format!("{}*{};", u64::MAX, 1);
         let ast = calc.from_str(input.as_str()).unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
-        calc.eval(&bytecode, &mut Scope::new()).unwrap();
+        calc.eval(&bytecode, scope).unwrap();
     }
 }

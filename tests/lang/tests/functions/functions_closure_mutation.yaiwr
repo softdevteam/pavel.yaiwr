@@ -1,0 +1,16 @@
+// Run-time:
+//    stdout: 9
+//    stderr:
+
+let global_var = 1;
+
+fun f1 (){ 
+    fun f2(){
+        global_var = 3;
+        return 3;
+    }
+    
+    return f2() + global_var;
+}
+
+println(f1());

@@ -223,6 +223,23 @@ fun add (x){
 }
 ```
 
+#### Closures
+
+Example 1:
+```
+let g = 1;
+
+fun f1 (){ 
+    let f = 2;
+    fun f2(){
+        let ff = 3;
+        return g + f + ff;
+    }
+    return f2();
+}
+
+```
+
 #### Function Scope
 
 - Variables declared within a function, become "local" to the function.
@@ -277,7 +294,7 @@ fun f() {
 
 [x] Conditionals
 
-[ ] Closures
+[x] Closures
 
 [ ] Compile variable names to integers
 

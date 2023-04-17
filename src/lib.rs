@@ -76,10 +76,10 @@ impl Calc {
         return block_to_bytecode(ast);
     }
 
-    fn eval_function_args(
+    fn eval_function_args<'a>(
         &mut self,
         args: &Vec<Vec<Instruction>>,
-        scope: &mut Scope,
+        scope: &mut Box<Scope>,
     ) -> Result<Vec<EvalResult>, InterpError> {
         let mut result = vec![];
         for arg_set in args {
@@ -92,11 +92,11 @@ impl Calc {
         return Ok(result);
     }
 
-    fn eval_function_call(
+    fn eval_function_call<'a>(
         &mut self,
         args: &Vec<EvalResult>,
         id: &String,
-        outer_scope: &mut Scope,
+        outer_scope: &mut Box<Scope>,
     ) -> Result<Option<EvalResult>, InterpError> {
         let function = self
             .fun_store
@@ -115,7 +115,10 @@ impl Calc {
                         args.len()
                     )));
                 }
-                let func_scope = &mut Scope::from_scope(outer_scope);
+                // bind args
+                let func_scope = Scope::from_scope(outer_scope.to_owned());
+
+                let scope = &mut Box::new(func_scope);
 
                 let mut arg_values = vec![];
                 for a in args {
@@ -124,8 +127,9 @@ impl Calc {
                     }
                 }
 
-                func_scope.assign(HashMap::from_iter(params.iter().zip(arg_values)));
-                return self.eval(&body.clone(), func_scope);
+                scope.assign(HashMap::from_iter(params.iter().zip(arg_values)));
+
+                return self.eval(&body.clone(), scope);
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -138,7 +142,7 @@ impl Calc {
     fn eval_binary_op(
         &mut self,
         op: &BinaryOp,
-        scope: &mut Scope,
+        scope: &mut Box<Scope>,
     ) -> Result<Option<StackValue>, InterpError> {
         let val = match op {
             BinaryOp::LessThan => {
@@ -169,8 +173,12 @@ impl Calc {
             }
             BinaryOp::Assign { id } => {
                 let val = self.stack_pop()?;
-                scope.var_store.insert(id.to_string(), val);
+                scope.set_var(id.to_string(), val);
                 val
+            }
+            BinaryOp::Declare { id } => {
+                scope.dec_var(id.to_string());
+                StackValue::Uninitialised
             }
             BinaryOp::Equal => {
                 let val = self.eval_eq()?;
@@ -241,13 +249,22 @@ impl Calc {
         Ok(stack_value)
     }
 
+    pub fn eval_input(input: String) -> Result<Option<EvalResult>, InterpError> {
+        let scope = &mut Box::new(Scope::new());
+        let calc = &mut Calc::new();
+        let ast = calc.from_str(input.as_str()).unwrap();
+        let bytecode = Calc::ast_to_bytecode(ast);
+        calc.eval(&bytecode, scope)
+    }
+
     pub fn eval(
         &mut self,
         instructions: &Vec<Instruction>,
-        scope: &mut Scope,
+        scope: &mut Box<Scope>,
     ) -> Result<Option<EvalResult>, InterpError> {
         for instruction in instructions {
             debug!("eval: {:?}. scope: {:?}", instruction, scope);
+
             match instruction {
                 Instruction::Return { block } => {
                     let val = self.eval(block, scope)?;
@@ -289,8 +306,8 @@ impl Calc {
                     println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
-                    let val = scope.get_var(id)?;
-                    self.stack_push(*val);
+                    let val = scope.to_owned().get_var(id.to_string())?;
+                    self.stack_push(val);
                 }
                 Instruction::BinaryOp { op } => {
                     self.eval_binary_op(op, scope)?;

@@ -9,7 +9,7 @@ fn main() {
     env_logger::init();
     let args: Vec<String> = env::args().collect();
     debug!("cli args {:?}", &args[1..]);
-    let scope = &mut Scope::new();
+    let scope = &mut Box::new(Scope::new());
     let calc = &mut Calc::new();
     if args.len() > 1 {
         let result;
@@ -30,10 +30,10 @@ fn print_err(err: InterpError) {
     eprintln!("Evaluation error: {}", err)
 }
 
-pub fn run_from_file(
+pub fn run_from_file<'a>(
     file_name: &str,
     calc: &mut Calc,
-    scope: &mut Scope,
+    scope: &mut  Box<Scope>,
 ) -> Result<Option<EvalResult>, InterpError> {
     let file_path = file_name;
     match fs::read_to_string(file_name) {
@@ -42,7 +42,7 @@ pub fn run_from_file(
     }
 }
 
-fn repl(calc: &mut Calc, scope: &mut Scope) {
+fn repl<'a>(calc: &mut Calc, scope: &mut Box<Scope>) {
     let stdin = io::stdin();
     loop {
         print!("👉 ");
@@ -65,10 +65,10 @@ fn repl(calc: &mut Calc, scope: &mut Scope) {
     }
 }
 
-fn eval_statement(
+fn eval_statement<'a>(
     input: &str,
     calc: &mut Calc,
-    scope: &mut Scope,
+    scope: &mut Box<Scope>,
 ) -> Result<Option<EvalResult>, InterpError> {
     debug!("Statement: {:#?}", &input);
     let ast = calc.from_str(input);

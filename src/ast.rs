@@ -24,6 +24,10 @@ pub enum AstNode {
         id: String,
         rhs: Box<AstNode>,
     },
+    Declare {
+        id: String,
+        rhs: Option<Box<AstNode>>,
+    },
     Function {
         id: String,
         params: Vec<AstNode>,
