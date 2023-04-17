@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{err::InterpError, instruction::StackValue};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Scope {
     var_store: HashMap<String, StackValue>,
     outter_scope: Option<Rc<RefCell<Scope>>>,
