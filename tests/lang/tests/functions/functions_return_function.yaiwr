@@ -1,0 +1,15 @@
+// Run-time:
+//    stdout: 3
+//    stderr:
+
+fun f1(f2) {
+  return f2;
+}
+
+fun f2() {
+  return 2;
+}
+
+let result = f1(f2);
+
+println(result());

@@ -105,10 +105,19 @@ impl Calc {
         
         let function = self
             .fun_store_ids
-            .get(&hash)
-            .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
+            .get(&hash);
 
-        match function {
+        let function_var = outer_scope.borrow().get_var(id.clone());
+
+        let f = match (function, function_var) {
+            (Some(f), _) =>f,
+            (_, Ok(StackValue::Function(f_id))) =>{
+                self.fun_store_ids.get(&f_id).ok_or(InterpError::UndefinedFunction(id.to_string()))?
+            },
+            _ => return Err(InterpError::UndefinedFunction(id.to_string()))
+        };
+
+        match f {
             Instruction::Function {
                 id: _,
                 params,
