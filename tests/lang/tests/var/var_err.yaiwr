@@ -1,6 +1,6 @@
 // Run-time:
 //    stdout:
-//    stderr: Evaluation error: Cannot reference undeclared variable by 'a' id!
+//    stderr: Evaluation error: Undefined variable 'a'!
 
 a = 1;
 println(a);
