@@ -33,9 +33,9 @@ impl Display for InterpError {
             InterpError::ProgramFileNotFound(file_name) => {
                 f.write_str(format!("Program file: '{}' cannot be found!", file_name).as_str())
             }
-            InterpError::UndeclaredVariable(id) => f.write_str(
-                format!("Undefined variable '{}'!", id).as_str(),
-            ),
+            InterpError::UndeclaredVariable(id) => {
+                f.write_str(format!("Undefined variable '{}'!", id).as_str())
+            }
         }
     }
 }

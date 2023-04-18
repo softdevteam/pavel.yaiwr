@@ -92,14 +92,6 @@ AssignmentExpression -> Result<AstNode, ()>:
             _ => Err(())
         }
     }
-    | 'LET' UnaryExpression {
-        match $2.map_err(|_| ())? {
-            AstNode::ID { value } => {
-                Ok(AstNode::Declare { id: value, rhs: None })
-            },
-            _ => Err(())
-        }
-    } 
     | 'LET' UnaryExpression '=' AssignmentExpression {
         match $2.map_err(|_| ())? {
             AstNode::ID { value } => {
