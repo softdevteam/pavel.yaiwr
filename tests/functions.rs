@@ -78,13 +78,14 @@ mod tests {
         let prog1 = "fun some (){ return 2*2; }";
         let ast = calc.from_str(prog1).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
-        calc.eval(&func_declare_bc, scope).unwrap();
+        calc.eval(&func_declare_bc, scope.clone()).unwrap();
         match func_declare_bc.as_slice() {
             [first] => {
                 assert_eq!(
                     first,
                     &Instruction::Function {
                         id: "some".to_string(),
+                        scope:scope.clone(),
                         params: vec![],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -111,13 +112,14 @@ mod tests {
         let prog = "fun add (_p1, _p2){ return _p1 + _p2 + 1; }";
         let ast = calc.from_str(prog).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
-        calc.eval(&func_declare_bc, scope).unwrap();
+        calc.eval(&func_declare_bc, scope.clone()).unwrap();
         match func_declare_bc.as_slice() {
             [first] => {
                 assert_eq!(
                     first,
                     &Instruction::Function {
                         id: "add".to_string(),
+                        scope: scope.clone(),
                         params: vec!["_p1".to_string(), "_p2".to_string()],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -148,13 +150,14 @@ mod tests {
         let prog_func_declaration = "fun add (_p1, _p2){ return _p1 + _p2; }";
         let ast = calc.from_str(prog_func_declaration).unwrap();
         let func_declaration_bc = Calc::ast_to_bytecode(ast);
-        calc.eval(&func_declaration_bc, scope).unwrap();
+        calc.eval(&func_declaration_bc, scope.clone()).unwrap();
         match func_declaration_bc.as_slice() {
             [first] => {
                 assert_eq!(
                     first,
                     &Instruction::Function {
                         id: "add".to_string(),
+                        scope: scope.clone(),
                         params: vec!["_p1".to_string(), "_p2".to_string()],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -205,6 +208,7 @@ mod tests {
         let prog_func_declaration = "fun two_plus_two (){ return (2+2); }";
         let ast = calc.from_str(prog_func_declaration).unwrap();
         let func_declare_bc = Calc::ast_to_bytecode(ast);
+        let scope = Rc::new(RefCell::new(Scope::new()));
         match func_declare_bc.as_slice() {
             [first] => {
                 assert_eq!(
@@ -212,6 +216,7 @@ mod tests {
                     &Instruction::Function {
                         id: "two_plus_two".to_string(),
                         params: vec![],
+                        scope,
                         block: vec![Instruction::Return {
                             block: vec![
                                 Instruction::Push {

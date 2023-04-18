@@ -1,6 +1,8 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     ast::AstNode,
-    instruction::{BinaryOp, Instruction, StackValue},
+    instruction::{BinaryOp, Instruction, StackValue}, scope::Scope,
 };
 
 fn function_call(id: String, args: Vec<AstNode>, prog: &mut Vec<Instruction>) {
@@ -47,6 +49,7 @@ fn function_declaration(
         id,
         block: block_to_bytecode(block),
         params: parsed_params,
+        scope: Rc::new(RefCell::new(Scope::new()))
     });
 }
 

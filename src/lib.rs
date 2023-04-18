@@ -4,7 +4,12 @@ use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
-use std::{cell::RefCell, collections::{HashMap, hash_map::DefaultHasher}, rc::Rc, hash::{Hash, Hasher}};
+use std::{
+    cell::RefCell,
+    collections::{hash_map::DefaultHasher, HashMap},
+    hash::{Hash, Hasher},
+    rc::Rc,
+};
 
 lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
@@ -94,34 +99,42 @@ impl Calc {
         return Ok(result);
     }
 
+    fn get_func(
+        &self,
+        id: &String,
+        scope: Rc<RefCell<Scope>>,
+    ) -> Result<&Instruction, InterpError> {
+        let hash: u64 = Calc::calculate_hash(id);
+
+        let function = self.fun_store_ids.get(&hash);
+
+        let function_var = scope.borrow().get_var(id.clone());
+
+        match (function, function_var) {
+            (Some(f), _) => Ok(f),
+            (_, Ok(StackValue::Function(f_id))) => {
+                let f = self
+                    .fun_store_ids
+                    .get(&f_id)
+                    .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
+                Ok(f)
+            }
+            _ => return Err(InterpError::UndefinedFunction(id.to_string())),
+        }
+    }
+
     fn eval_function_call(
         &mut self,
         args: &Vec<EvalResult>,
         id: &String,
         outer_scope: Rc<RefCell<Scope>>,
     ) -> Result<Option<EvalResult>, InterpError> {
-        
-        let hash: u64 = Calc::calculate_hash(id);
-        
-        let function = self
-            .fun_store_ids
-            .get(&hash);
-
-        let function_var = outer_scope.borrow().get_var(id.clone());
-
-        let f = match (function, function_var) {
-            (Some(f), _) =>f,
-            (_, Ok(StackValue::Function(f_id))) =>{
-                self.fun_store_ids.get(&f_id).ok_or(InterpError::UndefinedFunction(id.to_string()))?
-            },
-            _ => return Err(InterpError::UndefinedFunction(id.to_string()))
-        };
-
-        match f {
+        match self.get_func(id, outer_scope.clone())? {
             Instruction::Function {
                 id: _,
                 params,
                 block: body,
+                scope,
             } => {
                 if params.len() != args.len() {
                     return Err(InterpError::EvalError(format!(
@@ -130,8 +143,7 @@ impl Calc {
                         args.len()
                     )));
                 }
-
-                let mut func_scope = Scope::from_scope(outer_scope);
+                let mut func_scope = Scope::from_scope(scope.clone());
                 // bind args and params to funciton scope
                 for (i, arg) in args.iter().enumerate() {
                     if let EvalResult::Value(val) = arg {
@@ -139,7 +151,6 @@ impl Calc {
                         func_scope.set_var(params[i].clone(), *val)?;
                     }
                 }
-
                 return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
             }
             _ => {
@@ -268,7 +279,6 @@ impl Calc {
         calc.eval(&bytecode, scope)
     }
 
-
     fn calculate_hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();
         t.hash(&mut s);
@@ -281,7 +291,7 @@ impl Calc {
         scope: Rc<RefCell<Scope>>,
     ) -> Result<Option<EvalResult>, InterpError> {
         for instruction in instructions {
-            debug!("eval: {:?}. scope: {:?}", instruction, scope.clone());
+            debug!("eval: {}. scope: {:?}", instruction, scope.clone());
 
             match instruction {
                 Instruction::Return { block } => {
@@ -295,23 +305,26 @@ impl Calc {
                     block: body,
                     id,
                     params,
+                    scope:_,
                 } => {
                     let hash = Calc::calculate_hash(id);
-                    if let None = self.fun_store_ids.get(&hash) {
-                        let func = Instruction::Function {
-                            id: id.to_string(),
-                            params: params.to_vec(),
-                            block: body.to_vec(),
-                        };
-                        self.fun_store_ids.insert(
-                            hash,
-                            func,
-                        );
-                    } else {
-                        return Err(InterpError::EvalError(format!(
-                            "Function with the id: '{}' already defined!",
-                            id
-                        )));
+                    match self.fun_store_ids.get(&hash) {
+                        Some(..) => {
+                            return Err(InterpError::EvalError(format!(
+                                "Function with the id: '{}' already defined!",
+                                id
+                            )))
+                        }
+                        None => {
+                            
+                            let func = Instruction::Function {
+                                id: id.to_string(),
+                                params: params.to_vec(),
+                                block: body.to_vec(),
+                                scope: scope.clone(),
+                            };
+                            self.fun_store_ids.insert(hash, func);
+                        }
                     }
                 }
                 Instruction::FunctionCall { id, args } => {
@@ -328,10 +341,10 @@ impl Calc {
                 Instruction::Load { id } => {
                     let hash = Calc::calculate_hash(id);
 
-                    match self.fun_store_ids.get(&hash){
-                        Some(..) =>{
+                    match self.fun_store_ids.get(&hash) {
+                        Some(..) => {
                             self.stack_push(StackValue::Function(hash));
-                        },
+                        }
                         None => {
                             let val = scope.borrow().get_var(id.to_string())?;
                             self.stack_push(val);

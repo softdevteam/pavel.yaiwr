@@ -1,5 +1,5 @@
 // Run-time:
-//    stdout: 3
+//    stdout: 2
 //    stderr:
 
 fun f1(f2) {

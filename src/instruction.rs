@@ -1,9 +1,11 @@
 use std::{
+    cell::RefCell,
     fmt::{Display, Error, Formatter},
     mem::discriminant,
+    rc::Rc,
 };
 
-use crate::err::InterpError;
+use crate::{err::InterpError, scope::Scope};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StackValue {
@@ -90,7 +92,7 @@ impl Display for BinaryOp {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub enum Instruction {
     BinaryOp {
         op: BinaryOp,
@@ -109,6 +111,7 @@ pub enum Instruction {
         id: String,
         params: Vec<String>,
         block: Vec<Instruction>,
+        scope: Rc<RefCell<Scope>>,
     },
     FunctionCall {
         id: String,
@@ -120,6 +123,55 @@ pub enum Instruction {
         alternative: Option<Vec<Instruction>>,
     },
 }
+impl PartialEq for Instruction {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::BinaryOp { op: l_op }, Self::BinaryOp { op: r_op }) => l_op == r_op,
+            (Self::Push { value: l_value }, Self::Push { value: r_value }) => l_value == r_value,
+            (Self::Load { id: l_id }, Self::Load { id: r_id }) => l_id == r_id,
+            (Self::Return { block: l_block }, Self::Return { block: r_block }) => {
+                l_block == r_block
+            }
+            (
+                Self::Function {
+                    id: l_id,
+                    params: l_params,
+                    block: l_block,
+                    scope: _,
+                },
+                Self::Function {
+                    id: r_id,
+                    params: r_params,
+                    block: r_block,
+                    scope: _,
+                },
+            ) => l_id == r_id && l_params == r_params && l_block == r_block,
+            (
+                Self::FunctionCall {
+                    id: l_id,
+                    args: l_args,
+                },
+                Self::FunctionCall {
+                    id: r_id,
+                    args: r_args,
+                },
+            ) => l_id == r_id && l_args == r_args,
+            (
+                Self::Conditional {
+                    condition: l_condition,
+                    block: l_block,
+                    alternative: l_alternative,
+                },
+                Self::Conditional {
+                    condition: r_condition,
+                    block: r_block,
+                    alternative: r_alternative,
+                },
+            ) => l_condition == r_condition && l_block == r_block && l_alternative == r_alternative,
+            _ => core::mem::discriminant(self) == core::mem::discriminant(other),
+        }
+    }
+}
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
@@ -129,11 +181,7 @@ impl Display for Instruction {
             Instruction::PrintLn => f.write_str("PrintLn"),
             Instruction::Load { .. } => f.write_str("Load"),
             Instruction::Return { .. } => f.write_str("Return"),
-            Instruction::Function {
-                id: _,
-                params: _,
-                block: _,
-            } => f.write_str("Function"),
+            Instruction::Function { .. } => f.write_str("Function"),
             Instruction::FunctionCall { .. } => f.write_str("FunctionCall"),
             Instruction::BinaryOp { op } => f.write_str(format!("BinaryOp({})", op).as_str()),
         }
