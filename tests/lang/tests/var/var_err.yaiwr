@@ -3,4 +3,4 @@
 //    stderr: Evaluation error: Cannot reference undeclared variable by 'a' id!
 
 a = 1;
-rintln(a);
+println(a);
