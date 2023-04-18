@@ -297,6 +297,8 @@ fun f() {
 
 [x] Closures
 
+[ ] Rename interpreter from calc to something more meaningful
+
 [ ] Compile variable names to integers
 
 [ ] Benchmarking
