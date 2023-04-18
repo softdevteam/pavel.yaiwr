@@ -8,6 +8,7 @@ use crate::err::InterpError;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StackValue {
     Integer(u64),
+    Function(u64),
     Boolean(bool),
     Uninitialised,
 }
@@ -52,6 +53,7 @@ impl Display for StackValue {
             StackValue::Integer(val) => f.write_str(format!("{}", val).as_str()),
             StackValue::Boolean(val) => f.write_str(format!("{}", val).as_str()),
             StackValue::Uninitialised => f.write_str(format!("Uninitialised").as_str()),
+            StackValue::Function(_) => f.write_str(format!("Function").as_str()),
         };
         return a;
     }

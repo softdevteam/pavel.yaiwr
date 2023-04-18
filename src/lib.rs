@@ -4,7 +4,7 @@ use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::{HashMap, hash_map::DefaultHasher}, rc::Rc, hash::{Hash, Hasher}};
 
 lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
@@ -21,14 +21,16 @@ use err::InterpError;
 use crate::instruction::JumpInstruction;
 
 pub struct Calc {
-    fun_store: HashMap<String, Instruction>,
+    // fun_store: HashMap<String, Instruction>,
+    fun_store_ids: HashMap<u64, Instruction>,
     stack: Vec<StackValue>,
 }
 
 impl Calc {
     pub fn new() -> Self {
         Calc {
-            fun_store: HashMap::new(),
+            // fun_store: HashMap::new(),
+            fun_store_ids: HashMap::new(),
             stack: vec![],
         }
     }
@@ -92,16 +94,20 @@ impl Calc {
         return Ok(result);
     }
 
-    fn eval_function_call<'a>(
+    fn eval_function_call(
         &mut self,
         args: &Vec<EvalResult>,
         id: &String,
         outer_scope: Rc<RefCell<Scope>>,
     ) -> Result<Option<EvalResult>, InterpError> {
+        
+        let hash: u64 = Calc::calculate_hash(id);
+        
         let function = self
-            .fun_store
-            .get(id)
+            .fun_store_ids
+            .get(&hash)
             .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
+
         match function {
             Instruction::Function {
                 id: _,
@@ -253,6 +259,13 @@ impl Calc {
         calc.eval(&bytecode, scope)
     }
 
+
+    fn calculate_hash<T: Hash>(t: &T) -> u64 {
+        let mut s = DefaultHasher::new();
+        t.hash(&mut s);
+        s.finish()
+    }
+
     pub fn eval(
         &mut self,
         instructions: &Vec<Instruction>,
@@ -274,14 +287,16 @@ impl Calc {
                     id,
                     params,
                 } => {
-                    if let None = self.fun_store.get(id) {
-                        self.fun_store.insert(
-                            id.to_string(),
-                            Instruction::Function {
-                                id: id.to_string(),
-                                params: params.to_vec(),
-                                block: body.to_vec(),
-                            },
+                    let hash = Calc::calculate_hash(id);
+                    if let None = self.fun_store_ids.get(&hash) {
+                        let func = Instruction::Function {
+                            id: id.to_string(),
+                            params: params.to_vec(),
+                            block: body.to_vec(),
+                        };
+                        self.fun_store_ids.insert(
+                            hash,
+                            func,
                         );
                     } else {
                         return Err(InterpError::EvalError(format!(
@@ -302,8 +317,17 @@ impl Calc {
                     println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
-                    let val = scope.borrow().get_var(id.to_string())?;
-                    self.stack_push(val);
+                    let hash = Calc::calculate_hash(id);
+
+                    match self.fun_store_ids.get(&hash){
+                        Some(..) =>{
+                            self.stack_push(StackValue::Function(hash));
+                        },
+                        None => {
+                            let val = scope.borrow().get_var(id.to_string())?;
+                            self.stack_push(val);
+                        }
+                    }
                 }
                 Instruction::BinaryOp { op } => {
                     self.eval_binary_op(op, scope.clone())?;
