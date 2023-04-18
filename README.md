@@ -301,6 +301,8 @@ fun f() {
 
 [ ] Compile variable names to integers
 
+[ ] Performance - non-recursive set_var and get_var scope functionality
+
 [ ] Benchmarking
 
 
