@@ -11,8 +11,7 @@ use crate::{err::InterpError, scope::Scope};
 pub enum StackValue {
     Integer(u64),
     Function(u64),
-    Boolean(bool),
-    Uninitialised,
+    Boolean(bool)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -54,7 +53,6 @@ impl Display for StackValue {
         let a = match self {
             StackValue::Integer(val) => f.write_str(format!("{}", val).as_str()),
             StackValue::Boolean(val) => f.write_str(format!("{}", val).as_str()),
-            StackValue::Uninitialised => f.write_str(format!("Uninitialised").as_str()),
             StackValue::Function(_) => f.write_str(format!("Function").as_str()),
         };
         return a;

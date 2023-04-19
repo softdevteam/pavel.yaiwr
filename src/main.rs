@@ -44,7 +44,7 @@ pub fn run_from_file<'a>(
     }
 }
 
-fn repl<'a>(calc: &mut Calc, scope: Rc<RefCell<Scope>>) {
+fn repl(calc: &mut Calc, scope: Rc<RefCell<Scope>>) {
     let stdin = io::stdin();
     loop {
         print!("👉 ");
@@ -67,7 +67,7 @@ fn repl<'a>(calc: &mut Calc, scope: Rc<RefCell<Scope>>) {
     }
 }
 
-fn eval_statement<'a>(
+fn eval_statement(
     input: &str,
     calc: &mut Calc,
     scope: Rc<RefCell<Scope>>,

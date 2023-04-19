@@ -1,8 +1,8 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::{instruction::StackValue};
+use crate::instruction::StackValue;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Scope {
     var_store: HashMap<u64, StackValue>,
     outter_scope: Option<Rc<RefCell<Scope>>>,
@@ -28,8 +28,8 @@ impl Scope {
         return scope;
     }
 
-    pub fn dec_var(&mut self, id: u64) -> Option<StackValue> {
-        self.var_store.insert(id, StackValue::Uninitialised)
+    pub fn dec_var(&mut self, id: u64, val: StackValue) -> Option<StackValue> {
+        self.var_store.insert(id, val)
     }
 
     pub fn set_var(&mut self, id: u64, val: StackValue) -> Option<StackValue> {
@@ -43,7 +43,7 @@ impl Scope {
                 if let Some(out) = &mut self.outter_scope {
                     return out.borrow_mut().set_var(id, val);
                 } else {
-                    return None
+                    return None;
                 }
             }
         }

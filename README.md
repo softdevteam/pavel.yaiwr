@@ -226,15 +226,14 @@ fun add (x){
 #### Closures
 
 Example:
-
 ```
-let g_var = 1;
+let g = 1;
 
-fun f1 (){
-    g_var = 2;
-    let f1_var = 2;
-    fun f2 (){
-        return f1_var;
+fun f1 (){ 
+    let f = 2;
+    fun f2(){
+        let ff = 3;
+        return g + f + ff;
     }
     return f2();
 }

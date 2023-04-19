@@ -82,16 +82,12 @@ pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
             prog.push(Instruction::PrintLn {})
         }
         AstNode::Declare { id, rhs } => {
+            if let Some(val) = rhs {
+                to_bytecode(*val, prog);
+            }
             prog.push(Instruction::BinaryOp {
                 op: BinaryOp::Declare { name: id.clone(), id: id.id() },
             });
-
-            if let Some(val) = rhs {
-                to_bytecode(*val, prog);
-                prog.push(Instruction::BinaryOp {
-                    op: BinaryOp::Assign { name: id.clone(), id: id.id() },
-                });
-            }
         }
         AstNode::Assign { id, rhs } => {
             to_bytecode(*rhs, prog);

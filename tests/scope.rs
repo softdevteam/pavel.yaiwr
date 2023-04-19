@@ -7,7 +7,9 @@ mod tests {
     #[test]
     fn scope_var_get() {
         let scope = Rc::new(RefCell::new(Scope::new()));
-        scope.borrow_mut().dec_var("id".id());
+        scope
+            .borrow_mut()
+            .dec_var("id".id(), StackValue::Integer(0));
         scope
             .borrow_mut()
             .set_var("id".id(), StackValue::Integer(1))
@@ -20,17 +22,19 @@ mod tests {
     fn outer_scope_var_get() {
         let outer_scope = Rc::new(RefCell::new(Scope::new()));
 
-        outer_scope.borrow_mut().dec_var("a".id());
+        outer_scope
+            .borrow_mut()
+            .dec_var("a".id(), StackValue::Integer(0));
         outer_scope
             .borrow_mut()
             .set_var("a".id(), StackValue::Integer(1))
             .unwrap();
 
         let inner = Rc::new(RefCell::new(Scope::from_scope(outer_scope)));
-        inner.borrow_mut().dec_var("b".id());
+        inner.borrow_mut().dec_var("b".id(), StackValue::Integer(0));
         inner
             .borrow_mut()
-            .set_var("b".to_string().id                                                                                                                                                                                                                                                                                                                                                        (), StackValue::Integer(2))
+            .set_var("b".to_string().id(), StackValue::Integer(2))
             .unwrap();
 
         assert_eq!(
@@ -47,7 +51,9 @@ mod tests {
     fn outter_scope_mutation_only() {
         let outer_scope = Rc::new(RefCell::new(Scope::new()));
 
-        outer_scope.borrow_mut().dec_var("a".id());
+        outer_scope
+            .borrow_mut()
+            .dec_var("a".id(), StackValue::Integer(0));
         let outer_scope_clone = outer_scope.clone();
 
         let inner = Rc::new(RefCell::new(Scope::from_scope(outer_scope)));
@@ -71,9 +77,6 @@ mod tests {
         let result = outer_scope
             .borrow_mut()
             .set_var("a".id(), StackValue::Boolean(false));
-        assert_eq!(
-            result,
-            None
-        )
+        assert_eq!(result, None)
     }
 }

@@ -78,7 +78,7 @@ impl Calc {
         return block_to_bytecode(ast);
     }
 
-    fn eval_function_args(
+    fn eval_function_args<'a>(
         &mut self,
         args: &Vec<Vec<Instruction>>,
         scope: Rc<RefCell<Scope>>,
@@ -143,8 +143,7 @@ impl Calc {
                         // bind args and params to funciton scope
                         for (i, arg) in args.iter().enumerate() {
                             if let EvalResult::Value(val) = arg {
-                                func_scope.dec_var(params[i].clone().id());
-                                func_scope.set_var(params[i].clone().id(), *val);
+                                func_scope.dec_var(params[i].clone().id(), *val);
                             }
                         }
                         return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
@@ -166,62 +165,53 @@ impl Calc {
         &mut self,
         op: &BinaryOp,
         scope: Rc<RefCell<Scope>>,
-    ) -> Result<Option<StackValue>, InterpError> {
-        let val = match op {
+    ) -> Result<StackValue, InterpError> {
+        match op {
             BinaryOp::LessThan => {
                 let op1 = self.stack_pop()?.as_int()?;
                 let op2 = self.stack_pop()?.as_int()?;
-                StackValue::Boolean(op2 < op1)
+                Ok(StackValue::Boolean(op2 < op1))
             }
             BinaryOp::GreaterThan => {
                 let op1 = self.stack_pop()?.as_int()?;
                 let op2 = self.stack_pop()?.as_int()?;
-                StackValue::Boolean(op1 < op2)
+                Ok(StackValue::Boolean(op1 < op2))
             }
             BinaryOp::Add => {
                 let op1 = self.stack_pop()?.as_int()?;
                 let op2 = self.stack_pop()?.as_int()?;
-                StackValue::Integer(
+                Ok(StackValue::Integer(
                     op1.checked_add(op2)
                         .ok_or(InterpError::Numeric("overflowed".to_string()))?,
-                )
+                ))
             }
             BinaryOp::Mul => {
                 let op1 = self.stack_pop()?.as_int()?;
                 let op2 = self.stack_pop()?.as_int()?;
-                StackValue::Integer(
+                Ok(StackValue::Integer(
                     op1.checked_mul(op2)
                         .ok_or(InterpError::Numeric("overflowed".to_string()))?,
-                )
+                ))
             }
-            BinaryOp::Assign { name, id } => {
+            BinaryOp::Assign { id, name } => {
                 let val = self.stack_pop()?;
-                if let None = scope.borrow_mut().set_var(*id, val) {
-                    return Err(InterpError::UndeclaredVariable(name.clone()));
+                match scope.borrow_mut().set_var(*id, val) {
+                    Some(val) => Ok(val),
+                    None => return Err(InterpError::UndeclaredVariable(name.to_string()))
                 }
-                val
             }
-            BinaryOp::Declare { name: _, id } => {
-                scope.borrow_mut().dec_var(*id);
-                StackValue::Uninitialised
+            BinaryOp::Declare { id, name: _ } => {
+                let val = self.stack_pop()?;
+                scope.borrow_mut().dec_var(*id, val);
+                Ok(val)
             }
-            BinaryOp::Equal => {
-                let val = self.eval_eq()?;
-                self.stack.push(val);
-                val
-            }
-            BinaryOp::NotEqual => {
-                let val = StackValue::Boolean(!self.eval_eq()?.as_bool()?);
-                self.stack.push(val);
-                val
-            }
+            BinaryOp::Equal => Ok(self.eval_eq()?),
+            BinaryOp::NotEqual => Ok(StackValue::Boolean(!self.eval_eq()?.as_bool()?)),
             BinaryOp::LogicalAnd => {
                 let op1 = self.stack_pop()?;
                 let op2 = self.stack_pop()?;
-                let stack_value;
                 if op1.is_same_type(&op2) {
-                    stack_value = StackValue::Boolean(op1.as_bool()? && op2.as_bool()?);
-                    self.stack.push(stack_value)
+                    Ok(StackValue::Boolean(op1.as_bool()? && op2.as_bool()?))
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
@@ -231,14 +221,12 @@ impl Calc {
                         .to_string(),
                     ));
                 }
-                stack_value
             }
             BinaryOp::LogicalOr => {
                 let op1 = self.stack_pop()?;
                 let op2 = self.stack_pop()?;
-                let stack_value;
                 if op1.is_same_type(&op2) {
-                    stack_value = StackValue::Boolean(op1.as_bool()? || op2.as_bool()?);
+                    Ok(StackValue::Boolean(op1.as_bool()? || op2.as_bool()?))
                 } else {
                     return Err(InterpError::EvalError(
                         format!(
@@ -248,13 +236,10 @@ impl Calc {
                         .to_string(),
                     ));
                 }
-                stack_value
             }
-        };
-        self.stack_push(val);
-        Ok(Some(val))
+        }
     }
-
+    
     fn eval_eq(&mut self) -> Result<StackValue, InterpError> {
         let op1 = self.stack_pop()?;
         let op2 = self.stack_pop()?;
@@ -354,7 +339,8 @@ impl Calc {
                     }
                 }
                 Instruction::BinaryOp { op } => {
-                    self.eval_binary_op(op, scope.clone())?;
+                    let val = self.eval_binary_op(op, scope.clone())?;
+                    self.stack_push(val);
                 }
                 Instruction::Conditional {
                     condition,
