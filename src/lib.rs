@@ -26,16 +26,14 @@ use err::InterpError;
 use crate::instruction::JumpInstruction;
 
 pub struct Calc {
-    // fun_store: HashMap<String, Instruction>,
-    fun_store_ids: HashMap<u64, Instruction>,
+    fun_store: HashMap<u64, Instruction>,
     stack: Vec<StackValue>,
 }
 
 impl Calc {
     pub fn new() -> Self {
         Calc {
-            // fun_store: HashMap::new(),
-            fun_store_ids: HashMap::new(),
+            fun_store: HashMap::new(),
             stack: vec![],
         }
     }
@@ -104,17 +102,15 @@ impl Calc {
         id: &String,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<&Instruction, InterpError> {
-        let hash: u64 = Calc::calculate_hash(id);
-
-        let function = self.fun_store_ids.get(&hash);
-
-        let function_var = scope.borrow().get_var(id.clone());
-
-        match (function, function_var) {
+        let func_id: u64 = Calc::hash(id);
+        match (
+            self.fun_store.get(&func_id),
+            scope.borrow().get_var(id.clone()),
+        ) {
             (Some(f), _) => Ok(f),
             (_, Ok(StackValue::Function(f_id))) => {
                 let f = self
-                    .fun_store_ids
+                    .fun_store
                     .get(&f_id)
                     .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
                 Ok(f)
@@ -279,7 +275,7 @@ impl Calc {
         calc.eval(&bytecode, scope)
     }
 
-    fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    fn hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();
         t.hash(&mut s);
         s.finish()
@@ -291,7 +287,7 @@ impl Calc {
         scope: Rc<RefCell<Scope>>,
     ) -> Result<Option<EvalResult>, InterpError> {
         for instruction in instructions {
-            debug!("eval: {}. scope: {:?}", instruction, scope.clone());
+            debug!("eval: {:?}. scope: {:?}", instruction, scope.clone());
 
             match instruction {
                 Instruction::Return { block } => {
@@ -305,10 +301,10 @@ impl Calc {
                     block: body,
                     id,
                     params,
-                    scope:_,
+                    scope: _,
                 } => {
-                    let hash = Calc::calculate_hash(id);
-                    match self.fun_store_ids.get(&hash) {
+                    let hash = Calc::hash(id);
+                    match self.fun_store.get(&hash) {
                         Some(..) => {
                             return Err(InterpError::EvalError(format!(
                                 "Function with the id: '{}' already defined!",
@@ -316,14 +312,13 @@ impl Calc {
                             )))
                         }
                         None => {
-                            
                             let func = Instruction::Function {
                                 id: id.to_string(),
                                 params: params.to_vec(),
                                 block: body.to_vec(),
                                 scope: scope.clone(),
                             };
-                            self.fun_store_ids.insert(hash, func);
+                            self.fun_store.insert(hash, func);
                         }
                     }
                 }
@@ -339,9 +334,9 @@ impl Calc {
                     println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
-                    let hash = Calc::calculate_hash(id);
+                    let hash = Calc::hash(id);
 
-                    match self.fun_store_ids.get(&hash) {
+                    match self.fun_store.get(&hash) {
                         Some(..) => {
                             self.stack_push(StackValue::Function(hash));
                         }
