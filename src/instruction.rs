@@ -71,8 +71,8 @@ pub enum BinaryOp {
     NotEqual,
     LogicalAnd,
     LogicalOr,
-    Assign { id: String },
-    Declare { id: String },
+    Assign { name: String, id: u64 },
+    Declare { name: String, id: u64 },
 }
 
 impl Display for BinaryOp {
@@ -108,10 +108,11 @@ pub enum Instruction {
         block: Vec<Instruction>,
     },
     Function {
-        id: String,
+        name: String,
+        id: u64,
         params: Vec<String>,
         block: Vec<Instruction>,
-        scope: Option<Rc<RefCell<Scope>>>
+        scope: Option<Rc<RefCell<Scope>>>,
     },
     FunctionCall {
         id: String,
@@ -135,12 +136,14 @@ impl PartialEq for Instruction {
             (
                 Self::Function {
                     id: l_id,
+                    name: _,
                     params: l_params,
                     block: l_block,
                     scope: _,
                 },
                 Self::Function {
                     id: r_id,
+                    name: _,
                     params: r_params,
                     block: r_block,
                     scope: _,

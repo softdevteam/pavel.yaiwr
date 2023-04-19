@@ -4,12 +4,7 @@ use log::debug;
 use lrlex::{lrlex_mod, DefaultLexerTypes};
 use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
-use std::{
-    cell::RefCell,
-    collections::{hash_map::DefaultHasher, HashMap},
-    hash::{Hash, Hasher},
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 lrlex_mod!("calc.l");
 lrpar_mod!("calc.y");
@@ -17,11 +12,13 @@ lrpar_mod!("calc.y");
 pub mod ast;
 pub mod bytecode;
 pub mod err;
+pub mod hash;
 pub mod instruction;
 pub mod scope;
 
 use ast::AstNode;
 use err::InterpError;
+use hash::HashId;
 
 use crate::instruction::JumpInstruction;
 
@@ -102,13 +99,13 @@ impl Calc {
         id: &String,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<&Instruction, InterpError> {
-        let func_id: u64 = Calc::hash(id);
+        let func_id: u64 = id.id();
         match (
             self.fun_store.get(&func_id),
-            scope.borrow().get_var(id.clone()),
+            scope.borrow().get_var(func_id),
         ) {
             (Some(f), _) => Ok(f),
-            (_, Ok(StackValue::Function(f_id))) => {
+            (_, Some(StackValue::Function(f_id))) => {
                 let f = self
                     .fun_store
                     .get(&f_id)
@@ -128,6 +125,7 @@ impl Calc {
         match self.get_func(id, outer_scope.clone())? {
             Instruction::Function {
                 id: _,
+                name: _,
                 params,
                 block: body,
                 scope,
@@ -145,8 +143,8 @@ impl Calc {
                         // bind args and params to funciton scope
                         for (i, arg) in args.iter().enumerate() {
                             if let EvalResult::Value(val) = arg {
-                                func_scope.dec_var(params[i].clone());
-                                func_scope.set_var(params[i].clone(), *val)?;
+                                func_scope.dec_var(params[i].clone().id());
+                                func_scope.set_var(params[i].clone().id(), *val);
                             }
                         }
                         return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
@@ -196,13 +194,15 @@ impl Calc {
                         .ok_or(InterpError::Numeric("overflowed".to_string()))?,
                 )
             }
-            BinaryOp::Assign { id } => {
+            BinaryOp::Assign { name, id } => {
                 let val = self.stack_pop()?;
-                scope.borrow_mut().set_var(id.to_string(), val)?;
+                if let None = scope.borrow_mut().set_var(*id, val) {
+                    return Err(InterpError::UndeclaredVariable(name.clone()));
+                }
                 val
             }
-            BinaryOp::Declare { id } => {
-                scope.borrow_mut().dec_var(id.to_string());
+            BinaryOp::Declare { name: _, id } => {
+                scope.borrow_mut().dec_var(*id);
                 StackValue::Uninitialised
             }
             BinaryOp::Equal => {
@@ -282,12 +282,6 @@ impl Calc {
         calc.eval(&bytecode, scope)
     }
 
-    fn hash<T: Hash>(t: &T) -> u64 {
-        let mut s = DefaultHasher::new();
-        t.hash(&mut s);
-        s.finish()
-    }
-
     pub fn eval(
         &mut self,
         instructions: &Vec<Instruction>,
@@ -307,30 +301,29 @@ impl Calc {
                 Instruction::Function {
                     block: body,
                     id,
+                    name,
                     params,
                     scope: _,
-                } => {
-                    let func_id = Calc::hash(id);
-                    match self.fun_store.get(&func_id) {
-                        Some(..) => {
-                            return Err(InterpError::EvalError(format!(
-                                "Function with the id: '{}' already defined",
-                                id
-                            )))
-                        }
-                        None => {
-                            self.fun_store.insert(
-                                func_id,
-                                Instruction::Function {
-                                    id: id.to_string(),
-                                    params: params.to_vec(),
-                                    block: body.to_vec(),
-                                    scope: Some(scope.clone()),
-                                },
-                            );
-                        }
+                } => match self.fun_store.get(&id) {
+                    Some(..) => {
+                        return Err(InterpError::EvalError(format!(
+                            "Function with the id: '{}' already defined",
+                            name
+                        )))
                     }
-                }
+                    None => {
+                        self.fun_store.insert(
+                            *id,
+                            Instruction::Function {
+                                id: *id,
+                                name: name.to_string(),
+                                params: params.to_vec(),
+                                block: body.to_vec(),
+                                scope: Some(scope.clone()),
+                            },
+                        );
+                    }
+                },
                 Instruction::FunctionCall { id, args } => {
                     let arg_list = self.eval_function_args(&args, scope.clone())?;
                     let res = self.eval_function_call(&arg_list, id, scope.clone())?;
@@ -343,15 +336,20 @@ impl Calc {
                     println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
-                    let hash = Calc::hash(id);
+                    let hash = id.id();
 
                     match self.fun_store.get(&hash) {
                         Some(..) => {
                             self.stack_push(StackValue::Function(hash));
                         }
                         None => {
-                            let val = scope.borrow().get_var(id.to_string())?;
-                            self.stack_push(val);
+                            let val = scope.borrow().get_var(id.id());
+                            match val {
+                                Some(val) => {
+                                    self.stack_push(val);
+                                }
+                                None => return Err(InterpError::VariableNotFound(id.to_string())),
+                            }
                         }
                     }
                 }

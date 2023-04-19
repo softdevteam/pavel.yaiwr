@@ -1,6 +1,7 @@
 use crate::{
     ast::AstNode,
-    instruction::{BinaryOp, Instruction, StackValue}
+    hash::HashId,
+    instruction::{BinaryOp, Instruction, StackValue},
 };
 
 fn function_call(id: String, args: Vec<AstNode>, prog: &mut Vec<Instruction>) {
@@ -44,10 +45,11 @@ fn function_declaration(
 ) {
     let parsed_params = function_ast_params_to_vec(params);
     prog.push(Instruction::Function {
-        id,
+        name: id.clone(),
+        id: id.id(),
         block: block_to_bytecode(block),
         params: parsed_params,
-        scope: None
+        scope: None,
     });
 }
 
@@ -81,20 +83,20 @@ pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
         }
         AstNode::Declare { id, rhs } => {
             prog.push(Instruction::BinaryOp {
-                op: BinaryOp::Declare { id: id.clone() },
+                op: BinaryOp::Declare { name: id.clone(), id: id.id() },
             });
 
             if let Some(val) = rhs {
                 to_bytecode(*val, prog);
                 prog.push(Instruction::BinaryOp {
-                    op: BinaryOp::Assign { id: id.clone() },
+                    op: BinaryOp::Assign { name: id.clone(), id: id.id() },
                 });
             }
         }
         AstNode::Assign { id, rhs } => {
             to_bytecode(*rhs, prog);
             prog.push(Instruction::BinaryOp {
-                op: BinaryOp::Assign { id },
+                op: BinaryOp::Assign { name: id.clone(), id: id.id() }
             })
         }
         AstNode::ID { value } => prog.push(Instruction::Load { id: value }),
