@@ -297,9 +297,9 @@ fun f() {
 
 [x] Closures
 
-[ ] Rename interpreter from calc to something more meaningful
+[x] Rename interpreter from calc to something more meaningful
 
-[ ] Compile variable names to integers
+[x] Compile variable names to integers
 
 [ ] Performance - non-recursive set_var and get_var scope functionality
 
