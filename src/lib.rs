@@ -307,7 +307,7 @@ impl Calc {
                     match self.fun_store.get(&hash) {
                         Some(..) => {
                             return Err(InterpError::EvalError(format!(
-                                "Function with the id: '{}' already defined!",
+                                "Function with the id: '{}' already defined",
                                 id
                             )))
                         }
