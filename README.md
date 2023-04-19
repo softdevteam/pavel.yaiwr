@@ -321,12 +321,12 @@ fun f() {
 ```mermaid
 sequenceDiagram
     Program->>+VM: Evaluate
-    note right of VM: Defined in calc.rs
-    note right of Lexer: Defined in calc.l
+    note right of VM: Defined in yaiwr.rs
+    note right of Lexer: Defined in yaiwr.l
     VM->>+Lexer: Lexical analysis 
     Lexer-->>-VM: Lexemes
     VM->>+Parser: Parse Lexemes
-        note right of Lexer: Defined in calc.y
+        note right of Lexer: Defined in yaiwr.y
     Parser-->>-VM: AST
     VM->>Bytecode: Parse AST to bytecode
     loop foreach AST node

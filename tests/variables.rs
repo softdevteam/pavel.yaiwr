@@ -3,14 +3,14 @@ mod tests {
     use yaiwr::{
         hash::HashId,
         instruction::{BinaryOp, Instruction, StackValue},
-        Calc,
+        YIWR,
     };
 
     #[test]
     fn var_assign_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("let _ABCDabc123 = 1984;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("let _ABCDabc123 = 1984;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2] => {
                 assert_eq!(

@@ -5,26 +5,26 @@ use std::{
     io::{self, stdout, BufRead, Write},
     rc::Rc,
 };
-use yaiwr::{err::InterpError, instruction::EvalResult, scope::Scope, Calc};
+use yaiwr::{err::InterpError, instruction::EvalResult, scope::Scope, YIWR};
 
 fn main() {
     env_logger::init();
     let args: Vec<String> = env::args().collect();
     debug!("cli args {:?}", &args[1..]);
     let scope = Rc::new(RefCell::new(Scope::new()));
-    let calc = &mut Calc::new();
+    let yaiwr = &mut YIWR::new();
     if args.len() > 1 {
         let result;
         if args[1].ends_with(".yaiwr") {
-            result = run_from_file(&args[1], calc, scope.clone())
+            result = run_from_file(&args[1], yaiwr, scope.clone())
         } else {
-            result = eval_statement(&args[1], calc, scope.clone());
+            result = eval_statement(&args[1], yaiwr, scope.clone());
         }
         if let Err(e) = result {
             print_err(e);
         }
     } else {
-        repl(calc, scope.clone());
+        repl(yaiwr, scope.clone());
     }
 }
 
@@ -34,17 +34,17 @@ fn print_err(err: InterpError) {
 
 pub fn run_from_file<'a>(
     file_name: &str,
-    calc: &mut Calc,
+    yaiwr: &mut YIWR,
     scope: Rc<RefCell<Scope>>,
 ) -> Result<Option<EvalResult>, InterpError> {
     let file_path = file_name;
     match fs::read_to_string(file_name) {
-        Ok(content) => eval_statement(content.as_str(), calc, scope),
+        Ok(content) => eval_statement(content.as_str(), yaiwr, scope),
         Err(_) => Err(InterpError::ProgramFileNotFound(file_path.to_string())),
     }
 }
 
-fn repl(calc: &mut Calc, scope: Rc<RefCell<Scope>>) {
+fn repl(yaiwr: &mut YIWR, scope: Rc<RefCell<Scope>>) {
     let stdin = io::stdin();
     loop {
         print!("👉 ");
@@ -54,7 +54,7 @@ fn repl(calc: &mut Calc, scope: Rc<RefCell<Scope>>) {
                 if l.trim().is_empty() {
                     continue;
                 }
-                match eval_statement(l, calc, scope.clone()) {
+                match eval_statement(l, yaiwr, scope.clone()) {
                     Ok(Some(EvalResult::Value(value))) => {
                         println!("{}", value);
                     }
@@ -69,18 +69,18 @@ fn repl(calc: &mut Calc, scope: Rc<RefCell<Scope>>) {
 
 fn eval_statement(
     input: &str,
-    calc: &mut Calc,
+    yaiwr: &mut YIWR,
     scope: Rc<RefCell<Scope>>,
 ) -> Result<Option<EvalResult>, InterpError> {
     debug!("Statement: {:#?}", &input);
-    let ast = calc.from_str(input);
+    let ast = yaiwr.from_str(input);
     match ast {
         Ok(ast_node) => {
             debug!("AST: {:#?}", &ast_node);
-            let bytecode = Calc::ast_to_bytecode(ast_node);
+            let bytecode = YIWR::ast_to_bytecode(ast_node);
 
             debug!("Bytecode: {:#?}", &bytecode);
-            match calc.eval(&bytecode, scope) {
+            match yaiwr.eval(&bytecode, scope) {
                 Ok(eval_result) => return Ok(eval_result),
                 Err(e) => {
                     return Err(e);

@@ -6,8 +6,8 @@ use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-lrlex_mod!("calc.l");
-lrpar_mod!("calc.y");
+lrlex_mod!("yaiwr.l");
+lrpar_mod!("yaiwr.y");
 
 pub mod ast;
 pub mod bytecode;
@@ -22,14 +22,14 @@ use hash::HashId;
 
 use crate::instruction::JumpInstruction;
 
-pub struct Calc {
+pub struct YIWR {
     fun_store: HashMap<u64, Instruction>,
     stack: Vec<StackValue>,
 }
 
-impl Calc {
+impl YIWR {
     pub fn new() -> Self {
-        Calc {
+        YIWR {
             fun_store: HashMap::new(),
             stack: vec![],
         }
@@ -44,9 +44,9 @@ impl Calc {
     }
 
     pub fn from_str(&self, input: &str) -> Result<Vec<AstNode>, InterpError> {
-        let lexer_def = calc_l::lexerdef();
+        let lexer_def = yaiwr_l::lexerdef();
         let lexer = lexer_def.lexer(input);
-        let (ast_exp, errs) = calc_y::parse(&lexer);
+        let (ast_exp, errs) = yaiwr_y::parse(&lexer);
 
         let err_msg = self.get_parse_err(&lexer, errs);
         if err_msg.is_empty() == false {
@@ -69,7 +69,7 @@ impl Calc {
     ) -> String {
         let msgs = errs
             .iter()
-            .map(|e| e.pp(lexer, &calc_y::token_epp))
+            .map(|e| e.pp(lexer, &yaiwr_y::token_epp))
             .collect::<Vec<String>>();
         return msgs.join("\n");
     }
@@ -261,10 +261,10 @@ impl Calc {
 
     pub fn eval_input(input: String) -> Result<Option<EvalResult>, InterpError> {
         let scope = Rc::new(RefCell::new(Scope::new()));
-        let calc = &mut Calc::new();
-        let ast = calc.from_str(input.as_str()).unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
-        calc.eval(&bytecode, scope)
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str(input.as_str()).unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
+        yaiwr.eval(&bytecode, scope)
     }
 
     pub fn eval(

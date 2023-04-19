@@ -2,14 +2,14 @@
 mod tests {
     use yaiwr::{
         instruction::{BinaryOp, Instruction, StackValue},
-        Calc,
+        YIWR,
     };
 
     #[test]
     fn add_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("1+2;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("1+2;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first, second, third] => {
                 assert_eq!(
@@ -34,12 +34,12 @@ mod tests {
     #[should_panic(expected = "overflowed")]
     fn add_overflow_max_u64() {
         let input = format!("{}+{};", u64::MAX, 1);
-        Calc::eval_input(input).unwrap();
+        YIWR::eval_input(input).unwrap();
     }
 
     #[test]
     fn add_no_overflow() {
         let input = format!("{}+{};", u64::MAX - 1, 1);
-        Calc::eval_input(input).unwrap();
+        YIWR::eval_input(input).unwrap();
     }
 }
