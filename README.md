@@ -227,16 +227,17 @@ fun add (x){
 
 Example:
 ```
-let g = 1;
-
-fun f1 (){ 
-    let f = 2;
-    fun f2(){
-        let ff = 3;
-        return g + f + ff;
-    }
-    return f2();
+fun f() {
+  let x = 0;
+  fun g() {
+    x = x + 1;
+    return x;
+  }
+  return g;
 }
+
+let a = f();
+println(a());
 
 ```
 
