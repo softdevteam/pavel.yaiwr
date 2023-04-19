@@ -11,17 +11,18 @@ mod tests {
         let ast = calc.from_str("let _ABCDabc123 = 1984;").unwrap();
         let bytecode = Calc::ast_to_bytecode(ast);
         match bytecode.as_slice() {
-            [first, second] => {
+            [bc1, bc2] => {
                 assert_eq!(
-                    first,
+                    bc1,
                     &Instruction::Push {
                         value: StackValue::Integer(1984)
                     }
                 );
+
                 assert_eq!(
-                    second,
+                    bc2,
                     &Instruction::BinaryOp {
-                        op: BinaryOp::Assign {
+                        op: BinaryOp::Declare {
                             id: "_ABCDabc123".to_string()
                         }
                     }

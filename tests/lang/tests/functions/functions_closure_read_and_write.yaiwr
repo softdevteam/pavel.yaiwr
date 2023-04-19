@@ -1,0 +1,16 @@
+// Run-time:
+//    stdout: 4
+//    stderr:
+
+let g_var = 1;
+
+fun f1 (){
+    g_var = 2;
+    let f1_var = 2;
+    fun f2 (){
+        return f1_var;
+    }
+    return f2();
+}
+
+println(f1() + g_var);

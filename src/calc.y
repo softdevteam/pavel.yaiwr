@@ -84,10 +84,18 @@ ConditionalExpression -> Result<AstNode, ()>:
 
 AssignmentExpression -> Result<AstNode, ()>:
     ConditionalExpression { $1 }
+    | UnaryExpression '=' AssignmentExpression {
+        match $1.map_err(|_| ())? {
+            AstNode::ID { value } => {
+                Ok(AstNode::Assign { id: value, rhs: Box::new($3?) })
+            },
+            _ => Err(())
+        }
+    }
     | 'LET' UnaryExpression '=' AssignmentExpression {
         match $2.map_err(|_| ())? {
             AstNode::ID { value } => {
-                Ok(AstNode::Assign { id: value, rhs: Box::new($4?) })
+                Ok(AstNode::Declare { id: value, rhs: Some(Box::new($4?)) })
             },
             _ => Err(())
         }

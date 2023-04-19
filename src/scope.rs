@@ -1,42 +1,67 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{err::InterpError, instruction::StackValue};
 
 #[derive(Debug)]
 pub struct Scope {
-    pub var_store: HashMap<String, StackValue>,
+    var_store: HashMap<String, StackValue>,
+    outter_scope: Option<Rc<RefCell<Scope>>>,
 }
 
 impl Scope {
     pub fn new() -> Self {
         Scope {
             var_store: HashMap::new(),
+            outter_scope: None,
         }
     }
 
-    pub fn get_var(&self, id: &String) -> Result<&StackValue, InterpError> {
-        self.var_store
-            .get(id)
-            .ok_or(InterpError::VariableNotFound(id.to_string()))
+    pub fn get_var_store_len(&self) -> usize {
+        self.var_store.len()
     }
 
-    pub fn set_var(&mut self, id: String, val: StackValue) -> Option<StackValue> {
-        self.var_store.insert(id, val)
-    }
-
-    pub fn from_scope(other: &Scope) -> Self {
-        let mut scope = Scope {
+    pub fn from_scope(outer_scope: Rc<RefCell<Scope>>) -> Self {
+        let scope = Scope {
             var_store: HashMap::new(),
+            outter_scope: Some(outer_scope),
         };
-        for (k, v) in other.var_store.iter() {
-            scope.set_var(k.to_string(), *v);
-        }
         return scope;
     }
 
-    pub fn assign(&mut self, kv: HashMap<&String, &StackValue>) {
-        for kv in kv.iter() {
-            self.set_var(kv.0.to_string(), **kv.1);
+    pub fn dec_var(&mut self, id: String, val: StackValue) -> Option<StackValue> {
+        self.var_store.insert(id, val)
+    }
+
+    pub fn set_var(&mut self, id: String, val: StackValue) -> Result<StackValue, InterpError> {
+        let var = self.var_store.get(&id.clone());
+        match var {
+            Some(..) => {
+                self.var_store.insert(id, val);
+                Ok(val)
+            }
+            None => {
+                if let Some(out) = &mut self.outter_scope {
+                    return out.borrow_mut().set_var(id, val);
+                } else {
+                    return Err(InterpError::UndeclaredVariable(id));
+                }
+            }
+        }
+    }
+
+    pub fn get_var(&self, id: String) -> Result<StackValue, InterpError> {
+        let var = self.var_store.get(&id.clone());
+        match var {
+            Some(x) => {
+                return Ok(*x);
+            }
+            None => {
+                if let Some(out) = self.outter_scope.clone() {
+                    out.borrow().get_var(id)
+                } else {
+                    return Err(InterpError::VariableNotFound(id.to_string()));
+                }
+            }
         }
     }
 }

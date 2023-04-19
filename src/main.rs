@@ -1,7 +1,9 @@
 use log::debug;
 use std::{
+    cell::RefCell,
     env, fs,
     io::{self, stdout, BufRead, Write},
+    rc::Rc,
 };
 use yaiwr::{err::InterpError, instruction::EvalResult, scope::Scope, Calc};
 
@@ -9,20 +11,20 @@ fn main() {
     env_logger::init();
     let args: Vec<String> = env::args().collect();
     debug!("cli args {:?}", &args[1..]);
-    let scope = &mut Scope::new();
+    let scope = Rc::new(RefCell::new(Scope::new()));
     let calc = &mut Calc::new();
     if args.len() > 1 {
         let result;
         if args[1].ends_with(".yaiwr") {
-            result = run_from_file(&args[1], calc, scope)
+            result = run_from_file(&args[1], calc, scope.clone())
         } else {
-            result = eval_statement(&args[1], calc, scope);
+            result = eval_statement(&args[1], calc, scope.clone());
         }
         if let Err(e) = result {
             print_err(e);
         }
     } else {
-        repl(calc, scope);
+        repl(calc, scope.clone());
     }
 }
 
@@ -30,10 +32,10 @@ fn print_err(err: InterpError) {
     eprintln!("Evaluation error: {}", err)
 }
 
-pub fn run_from_file(
+pub fn run_from_file<'a>(
     file_name: &str,
     calc: &mut Calc,
-    scope: &mut Scope,
+    scope: Rc<RefCell<Scope>>,
 ) -> Result<Option<EvalResult>, InterpError> {
     let file_path = file_name;
     match fs::read_to_string(file_name) {
@@ -42,7 +44,7 @@ pub fn run_from_file(
     }
 }
 
-fn repl(calc: &mut Calc, scope: &mut Scope) {
+fn repl<'a>(calc: &mut Calc, scope: Rc<RefCell<Scope>>) {
     let stdin = io::stdin();
     loop {
         print!("👉 ");
@@ -52,7 +54,7 @@ fn repl(calc: &mut Calc, scope: &mut Scope) {
                 if l.trim().is_empty() {
                     continue;
                 }
-                match eval_statement(l, calc, scope) {
+                match eval_statement(l, calc, scope.clone()) {
                     Ok(Some(EvalResult::Value(value))) => {
                         println!("{}", value);
                     }
@@ -65,10 +67,10 @@ fn repl(calc: &mut Calc, scope: &mut Scope) {
     }
 }
 
-fn eval_statement(
+fn eval_statement<'a>(
     input: &str,
     calc: &mut Calc,
-    scope: &mut Scope,
+    scope: Rc<RefCell<Scope>>,
 ) -> Result<Option<EvalResult>, InterpError> {
     debug!("Statement: {:#?}", &input);
     let ast = calc.from_str(input);

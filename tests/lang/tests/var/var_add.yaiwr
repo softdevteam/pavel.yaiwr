@@ -1,0 +1,8 @@
+// Run-time:
+//    stdout: 1984
+//    stderr:
+let a = 1000;
+let b = 900;
+let c = 80;
+let d = 4;
+println(a + b + c + d);

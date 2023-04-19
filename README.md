@@ -223,6 +223,24 @@ fun add (x){
 }
 ```
 
+#### Closures
+
+Example:
+
+```
+let g_var = 1;
+
+fun f1 (){
+    g_var = 2;
+    let f1_var = 2;
+    fun f2 (){
+        return f1_var;
+    }
+    return f2();
+}
+
+```
+
 #### Function Scope
 
 - Variables declared within a function, become "local" to the function.
@@ -277,19 +295,16 @@ fun f() {
 
 [x] Conditionals
 
-[ ] Closures
+[x] Closures
+
+[ ] Rename interpreter from calc to something more meaningful
 
 [ ] Compile variable names to integers
 
-[ ] Use actions to make an AST on the fly (see e.g. https://github.com/ltratt/pizauth/blob/master/src/config.y)
-
-[ ] Add variable declaration and out-of-parsing-time computation
+[ ] Performance - non-recursive set_var and get_var scope functionality
 
 [ ] Benchmarking
 
-[ ] Revise Rust in general :)
-
-[ ] Add multi-line comments support. See previous PR attempt: https://github.com/softdevteam/pavel.yaiwr/pull/22.
 
 # Terminology
 

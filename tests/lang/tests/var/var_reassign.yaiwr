@@ -1,0 +1,9 @@
+// Run-time:
+//    stdout: 2
+//    stderr:
+
+let a = 1;
+
+a = a + 1;
+
+println(a)
