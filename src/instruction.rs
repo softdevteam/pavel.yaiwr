@@ -111,7 +111,7 @@ pub enum Instruction {
         id: String,
         params: Vec<String>,
         block: Vec<Instruction>,
-        scope: Rc<RefCell<Scope>>,
+        scope: Option<Rc<RefCell<Scope>>>
     },
     FunctionCall {
         id: String,

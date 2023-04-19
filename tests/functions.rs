@@ -85,7 +85,7 @@ mod tests {
                     first,
                     &Instruction::Function {
                         id: "some".to_string(),
-                        scope:scope.clone(),
+                        scope: Some(scope.clone()),
                         params: vec![],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -119,7 +119,7 @@ mod tests {
                     first,
                     &Instruction::Function {
                         id: "add".to_string(),
-                        scope: scope.clone(),
+                        scope: Some(scope.clone()),
                         params: vec!["_p1".to_string(), "_p2".to_string()],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -157,7 +157,7 @@ mod tests {
                     first,
                     &Instruction::Function {
                         id: "add".to_string(),
-                        scope: scope.clone(),
+                        scope: Some(scope.clone()),
                         params: vec!["_p1".to_string(), "_p2".to_string()],
                         block: vec![Instruction::Return {
                             block: vec![
@@ -216,7 +216,7 @@ mod tests {
                     &Instruction::Function {
                         id: "two_plus_two".to_string(),
                         params: vec![],
-                        scope,
+                        scope: Some(scope.clone()),
                         block: vec![Instruction::Return {
                             block: vec![
                                 Instruction::Push {

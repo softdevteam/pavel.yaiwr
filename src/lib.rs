@@ -139,15 +139,22 @@ impl Calc {
                         args.len()
                     )));
                 }
-                let mut func_scope = Scope::from_scope(scope.clone());
-                // bind args and params to funciton scope
-                for (i, arg) in args.iter().enumerate() {
-                    if let EvalResult::Value(val) = arg {
-                        func_scope.dec_var(params[i].clone());
-                        func_scope.set_var(params[i].clone(), *val)?;
+                match scope {
+                    Some(s) => {
+                        let mut func_scope = Scope::from_scope(s.clone());
+                        // bind args and params to funciton scope
+                        for (i, arg) in args.iter().enumerate() {
+                            if let EvalResult::Value(val) = arg {
+                                func_scope.dec_var(params[i].clone());
+                                func_scope.set_var(params[i].clone(), *val)?;
+                            }
+                        }
+                        return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
                     }
+                    None => Err(InterpError::EvalError(
+                        "Undefined function scope".to_string(),
+                    )),
                 }
-                return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -303,8 +310,8 @@ impl Calc {
                     params,
                     scope: _,
                 } => {
-                    let hash = Calc::hash(id);
-                    match self.fun_store.get(&hash) {
+                    let func_id = Calc::hash(id);
+                    match self.fun_store.get(&func_id) {
                         Some(..) => {
                             return Err(InterpError::EvalError(format!(
                                 "Function with the id: '{}' already defined",
@@ -312,13 +319,15 @@ impl Calc {
                             )))
                         }
                         None => {
-                            let func = Instruction::Function {
-                                id: id.to_string(),
-                                params: params.to_vec(),
-                                block: body.to_vec(),
-                                scope: scope.clone(),
-                            };
-                            self.fun_store.insert(hash, func);
+                            self.fun_store.insert(
+                                func_id,
+                                Instruction::Function {
+                                    id: id.to_string(),
+                                    params: params.to_vec(),
+                                    block: body.to_vec(),
+                                    scope: Some(scope.clone()),
+                                },
+                            );
                         }
                     }
                 }
