@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use yaiwr::{
-        hash::HashId,
         instruction::{BinaryOp, Instruction, StackValue},
         YIWR,
     };
@@ -25,7 +24,6 @@ mod tests {
                     &Instruction::BinaryOp {
                         op: BinaryOp::Declare {
                             name: "_ABCDabc123".to_string(),
-                            id: "_ABCDabc123".id()
                         }
                     }
                 );

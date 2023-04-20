@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests {
     use std::{cell::RefCell, rc::Rc};
-    use yaiwr::hash::HashId;
     use yaiwr::{instruction::StackValue, scope::Scope};
 
     #[test]
@@ -9,12 +8,12 @@ mod tests {
         let scope = Rc::new(RefCell::new(Scope::new()));
         scope
             .borrow_mut()
-            .dec_var("id".id(), StackValue::Integer(0));
+            .dec_var("id".to_string(), StackValue::Integer(0));
         scope
             .borrow_mut()
-            .set_var("id".id(), StackValue::Integer(1))
+            .set_var("id".to_string(), StackValue::Integer(1))
             .unwrap();
-        let var = scope.borrow().get_var("id".id()).unwrap();
+        let var = scope.borrow().get_var("id".to_string()).unwrap();
         assert_eq!(var, StackValue::Integer(1));
     }
 
@@ -24,25 +23,27 @@ mod tests {
 
         outer_scope
             .borrow_mut()
-            .dec_var("a".id(), StackValue::Integer(0));
+            .dec_var("a".to_string(), StackValue::Integer(0));
         outer_scope
             .borrow_mut()
-            .set_var("a".id(), StackValue::Integer(1))
+            .set_var("a".to_string(), StackValue::Integer(1))
             .unwrap();
 
         let inner = Rc::new(RefCell::new(Scope::from_scope(outer_scope)));
-        inner.borrow_mut().dec_var("b".id(), StackValue::Integer(0));
         inner
             .borrow_mut()
-            .set_var("b".to_string().id(), StackValue::Integer(2))
+            .dec_var("b".to_string(), StackValue::Integer(0));
+        inner
+            .borrow_mut()
+            .set_var("b".to_string().to_string(), StackValue::Integer(2))
             .unwrap();
 
         assert_eq!(
-            inner.borrow().get_var("a".id()).unwrap(),
+            inner.borrow().get_var("a".to_string()).unwrap(),
             StackValue::Integer(1)
         );
         assert_eq!(
-            inner.borrow().get_var("b".id()).unwrap(),
+            inner.borrow().get_var("b".to_string()).unwrap(),
             StackValue::Integer(2)
         );
     }
@@ -53,17 +54,17 @@ mod tests {
 
         outer_scope
             .borrow_mut()
-            .dec_var("a".id(), StackValue::Integer(0));
+            .dec_var("a".to_string(), StackValue::Integer(0));
         let outer_scope_clone = outer_scope.clone();
 
         let inner = Rc::new(RefCell::new(Scope::from_scope(outer_scope)));
         inner
             .borrow_mut()
-            .set_var("a".id(), StackValue::Integer(2))
+            .set_var("a".to_string(), StackValue::Integer(2))
             .unwrap();
 
         assert_eq!(
-            outer_scope_clone.borrow().get_var("a".id()).unwrap(),
+            outer_scope_clone.borrow().get_var("a".to_string()).unwrap(),
             StackValue::Integer(2)
         );
 
@@ -76,7 +77,7 @@ mod tests {
         let outer_scope = Rc::new(RefCell::new(Scope::new()));
         let result = outer_scope
             .borrow_mut()
-            .set_var("a".id(), StackValue::Boolean(false));
+            .set_var("a".to_string(), StackValue::Boolean(false));
         assert_eq!(result, None)
     }
 }

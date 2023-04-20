@@ -7,10 +7,10 @@ use std::{
 
 use crate::{err::InterpError, scope::Scope};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum StackValue {
     Integer(u64),
-    Function(u64),
+    Function(String),
     Boolean(bool),
 }
 
@@ -19,7 +19,7 @@ pub enum JumpInstruction {
     Return,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum EvalResult {
     Value(StackValue),
     Jump(JumpInstruction),
@@ -69,8 +69,8 @@ pub enum BinaryOp {
     NotEqual,
     LogicalAnd,
     LogicalOr,
-    Assign { name: String, id: u64 },
-    Declare { name: String, id: u64 },
+    Assign { name: String },
+    Declare { name: String },
 }
 
 impl Display for BinaryOp {
@@ -107,7 +107,6 @@ pub enum Instruction {
     },
     Function {
         name: String,
-        id: u64,
         params: Vec<String>,
         block: Vec<Instruction>,
         scope: Option<Rc<RefCell<Scope>>>,
@@ -133,15 +132,13 @@ impl PartialEq for Instruction {
             }
             (
                 Self::Function {
-                    id: l_id,
-                    name: _,
+                    name: l_id,
                     params: l_params,
                     block: l_block,
                     scope: _,
                 },
                 Self::Function {
-                    id: r_id,
-                    name: _,
+                    name: r_id,
                     params: r_params,
                     block: r_block,
                     scope: _,

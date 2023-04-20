@@ -5,7 +5,6 @@ mod tests {
 
     use yaiwr::{
         err::InterpError,
-        hash::HashId,
         instruction::{BinaryOp, EvalResult, Instruction, StackValue},
         scope::Scope,
         YIWR,
@@ -86,7 +85,6 @@ mod tests {
                     first,
                     &Instruction::Function {
                         name: "some".to_string(),
-                        id: "some".id(),
                         scope: Some(scope.clone()),
                         params: vec![],
                         block: vec![Instruction::Return {
@@ -121,7 +119,6 @@ mod tests {
                     first,
                     &Instruction::Function {
                         name: "add".to_string(),
-                        id: "add".id(),
                         scope: Some(scope.clone()),
                         params: vec!["_p1".to_string(), "_p2".to_string()],
                         block: vec![Instruction::Return {
@@ -160,7 +157,6 @@ mod tests {
                     first,
                     &Instruction::Function {
                         name: "add".to_string(),
-                        id: "add".id(),
                         scope: Some(scope.clone()),
                         params: vec!["_p1".to_string(), "_p2".to_string()],
                         block: vec![Instruction::Return {
@@ -219,7 +215,6 @@ mod tests {
                     first,
                     &Instruction::Function {
                         name: "two_plus_two".to_string(),
-                        id: "two_plus_two".id(),
                         params: vec![],
                         scope: Some(scope.clone()),
                         block: vec![Instruction::Return {

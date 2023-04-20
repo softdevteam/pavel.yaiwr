@@ -12,18 +12,16 @@ lrpar_mod!("yaiwr.y");
 pub mod ast;
 pub mod bytecode;
 pub mod err;
-pub mod hash;
 pub mod instruction;
 pub mod scope;
 
 use ast::AstNode;
 use err::InterpError;
-use hash::HashId;
 
 use crate::instruction::JumpInstruction;
 
 pub struct YIWR {
-    fun_store: HashMap<u64, Instruction>,
+    fun_store: HashMap<String, Instruction>,
     stack: Vec<StackValue>,
 }
 
@@ -99,16 +97,12 @@ impl YIWR {
         id: &String,
         scope: Rc<RefCell<Scope>>,
     ) -> Result<&Instruction, InterpError> {
-        let func_id: u64 = id.id();
-        match (
-            self.fun_store.get(&func_id),
-            scope.borrow().get_var(func_id),
-        ) {
+        match (self.fun_store.get(id), scope.borrow().get_var(id.clone())) {
             (Some(f), _) => Ok(f),
-            (_, Some(StackValue::Function(f_id))) => {
+            (_, Some(StackValue::Function(id))) => {
                 let f = self
                     .fun_store
-                    .get(&f_id)
+                    .get(&id)
                     .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
                 Ok(f)
             }
@@ -124,7 +118,6 @@ impl YIWR {
     ) -> Result<Option<EvalResult>, InterpError> {
         match self.get_func(id, outer_scope.clone())? {
             Instruction::Function {
-                id: _,
                 name: _,
                 params,
                 block: body,
@@ -143,7 +136,7 @@ impl YIWR {
                         // bind args and params to funciton scope
                         for (i, arg) in args.iter().enumerate() {
                             if let EvalResult::Value(val) = arg {
-                                func_scope.dec_var(params[i].clone().id(), *val);
+                                func_scope.dec_var(params[i].clone(), val.clone());
                             }
                         }
                         return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
@@ -193,16 +186,16 @@ impl YIWR {
                         .ok_or(InterpError::Numeric("overflowed".to_string()))?,
                 ))
             }
-            BinaryOp::Assign { id, name } => {
+            BinaryOp::Assign { name, .. } => {
                 let val = self.stack_pop()?;
-                match scope.borrow_mut().set_var(*id, val) {
+                match scope.borrow_mut().set_var(name.to_string(), val) {
                     Some(val) => Ok(val),
                     None => return Err(InterpError::UndeclaredVariable(name.to_string())),
                 }
             }
-            BinaryOp::Declare { id, name: _ } => {
+            BinaryOp::Declare { name, .. } => {
                 let val = self.stack_pop()?;
-                scope.borrow_mut().dec_var(*id, val);
+                scope.borrow_mut().dec_var(name.to_string(), val.clone());
                 Ok(val)
             }
             BinaryOp::Equal => Ok(self.eval_eq()?),
@@ -246,7 +239,7 @@ impl YIWR {
         let stack_value;
         if op1.is_same_type(&op2) {
             stack_value = StackValue::Boolean(op1 == op2);
-            self.stack.push(stack_value)
+            self.stack.push(stack_value.clone())
         } else {
             return Err(InterpError::EvalError(
                 format!(
@@ -285,11 +278,10 @@ impl YIWR {
                 }
                 Instruction::Function {
                     block: body,
-                    id,
                     name,
                     params,
                     scope: _,
-                } => match self.fun_store.get(&id) {
+                } => match self.fun_store.get(name) {
                     Some(..) => {
                         return Err(InterpError::EvalError(format!(
                             "Function with the id: '{}' already defined",
@@ -298,9 +290,8 @@ impl YIWR {
                     }
                     None => {
                         self.fun_store.insert(
-                            *id,
+                            name.clone(),
                             Instruction::Function {
-                                id: *id,
                                 name: name.to_string(),
                                 params: params.to_vec(),
                                 block: body.to_vec(),
@@ -316,28 +307,24 @@ impl YIWR {
                         self.stack_push(x);
                     }
                 }
-                Instruction::Push { value } => self.stack.push(*value),
+                Instruction::Push { value } => self.stack.push(value.clone()),
                 Instruction::PrintLn => {
                     println!("{}", self.stack_pop()?);
                 }
-                Instruction::Load { id } => {
-                    let hash = id.id();
-
-                    match self.fun_store.get(&hash) {
-                        Some(..) => {
-                            self.stack_push(StackValue::Function(hash));
-                        }
-                        None => {
-                            let val = scope.borrow().get_var(id.id());
-                            match val {
-                                Some(val) => {
-                                    self.stack_push(val);
-                                }
-                                None => return Err(InterpError::VariableNotFound(id.to_string())),
+                Instruction::Load { id } => match self.fun_store.get(id) {
+                    Some(..) => {
+                        self.stack_push(StackValue::Function(id.to_string()));
+                    }
+                    None => {
+                        let val = scope.borrow().get_var(id.to_string());
+                        match val {
+                            Some(val) => {
+                                self.stack_push(val);
                             }
+                            None => return Err(InterpError::VariableNotFound(id.to_string())),
                         }
                     }
-                }
+                },
                 Instruction::BinaryOp { op } => {
                     let val = self.eval_binary_op(op, scope.clone())?;
                     self.stack_push(val);
