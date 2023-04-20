@@ -1,0 +1,16 @@
+// Run-time:
+//    stdout: 0
+//       1
+//    stderr:
+
+fun f() {
+  let x = 0;
+  fun g() {
+    x = x + 1;
+  }
+  println(x);
+  g();
+  println(x);
+}
+
+f();

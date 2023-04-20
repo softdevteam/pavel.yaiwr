@@ -1,0 +1,10 @@
+// Run-time:
+//    stdout: 24
+//    stderr:
+
+let a = 1;
+let b = 2;
+let c = 3;
+let d = 4;
+
+println(a * b * c * d);

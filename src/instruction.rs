@@ -66,6 +66,7 @@ pub enum BinaryOp {
     LogicalAnd,
     LogicalOr,
     Assign { id: String },
+    Declare { id: String },
 }
 
 impl Display for BinaryOp {
@@ -80,6 +81,7 @@ impl Display for BinaryOp {
             BinaryOp::NotEqual => f.write_str("NotEqual"),
             BinaryOp::LogicalAnd => f.write_str("LogicalAnd"),
             BinaryOp::LogicalOr => f.write_str("LogicalOr"),
+            BinaryOp::Declare { .. } => f.write_str("Declare"),
         }
     }
 }
