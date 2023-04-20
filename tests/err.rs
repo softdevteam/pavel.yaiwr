@@ -3,11 +3,11 @@ mod print;
 #[cfg(test)]
 mod tests {
     use std::process::Command;
-    use yaiwr::{err::InterpError, Calc};
+    use yaiwr::{err::InterpError, YIWR};
 
     #[test]
     fn eval_error() {
-        let c = Calc::new();
+        let c = YIWR::new();
         let parsing_err = c.from_str("invalid input").err().unwrap();
         assert!(matches!(parsing_err, InterpError::ParseError(..)));
     }

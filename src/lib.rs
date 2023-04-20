@@ -6,28 +6,30 @@ use lrpar::{lrpar_mod, LexParseError, NonStreamingLexer};
 use scope::Scope;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-lrlex_mod!("calc.l");
-lrpar_mod!("calc.y");
+lrlex_mod!("yaiwr.l");
+lrpar_mod!("yaiwr.y");
 
 pub mod ast;
 pub mod bytecode;
 pub mod err;
+pub mod hash;
 pub mod instruction;
 pub mod scope;
 
 use ast::AstNode;
 use err::InterpError;
+use hash::HashId;
 
 use crate::instruction::JumpInstruction;
 
-pub struct Calc {
-    fun_store: HashMap<String, Instruction>,
+pub struct YIWR {
+    fun_store: HashMap<u64, Instruction>,
     stack: Vec<StackValue>,
 }
 
-impl Calc {
+impl YIWR {
     pub fn new() -> Self {
-        Calc {
+        YIWR {
             fun_store: HashMap::new(),
             stack: vec![],
         }
@@ -42,9 +44,9 @@ impl Calc {
     }
 
     pub fn from_str(&self, input: &str) -> Result<Vec<AstNode>, InterpError> {
-        let lexer_def = calc_l::lexerdef();
+        let lexer_def = yaiwr_l::lexerdef();
         let lexer = lexer_def.lexer(input);
-        let (ast_exp, errs) = calc_y::parse(&lexer);
+        let (ast_exp, errs) = yaiwr_y::parse(&lexer);
 
         let err_msg = self.get_parse_err(&lexer, errs);
         if err_msg.is_empty() == false {
@@ -67,7 +69,7 @@ impl Calc {
     ) -> String {
         let msgs = errs
             .iter()
-            .map(|e| e.pp(lexer, &calc_y::token_epp))
+            .map(|e| e.pp(lexer, &yaiwr_y::token_epp))
             .collect::<Vec<String>>();
         return msgs.join("\n");
     }
@@ -76,7 +78,7 @@ impl Calc {
         return block_to_bytecode(ast);
     }
 
-    fn eval_function_args(
+    fn eval_function_args<'a>(
         &mut self,
         args: &Vec<Vec<Instruction>>,
         scope: Rc<RefCell<Scope>>,
@@ -92,21 +94,41 @@ impl Calc {
         return Ok(result);
     }
 
-    fn eval_function_call<'a>(
+    fn get_func(
+        &self,
+        id: &String,
+        scope: Rc<RefCell<Scope>>,
+    ) -> Result<&Instruction, InterpError> {
+        let func_id: u64 = id.id();
+        match (
+            self.fun_store.get(&func_id),
+            scope.borrow().get_var(func_id),
+        ) {
+            (Some(f), _) => Ok(f),
+            (_, Some(StackValue::Function(f_id))) => {
+                let f = self
+                    .fun_store
+                    .get(&f_id)
+                    .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
+                Ok(f)
+            }
+            _ => return Err(InterpError::UndefinedFunction(id.to_string())),
+        }
+    }
+
+    fn eval_function_call(
         &mut self,
         args: &Vec<EvalResult>,
         id: &String,
         outer_scope: Rc<RefCell<Scope>>,
     ) -> Result<Option<EvalResult>, InterpError> {
-        let function = self
-            .fun_store
-            .get(id)
-            .ok_or(InterpError::UndefinedFunction(id.to_string()))?;
-        match function {
+        match self.get_func(id, outer_scope.clone())? {
             Instruction::Function {
                 id: _,
+                name: _,
                 params,
                 block: body,
+                scope,
             } => {
                 if params.len() != args.len() {
                     return Err(InterpError::EvalError(format!(
@@ -115,16 +137,21 @@ impl Calc {
                         args.len()
                     )));
                 }
-
-                let mut func_scope = Scope::from_scope(outer_scope);
-                // bind args and params to funciton scope
-                for (i, arg) in args.iter().enumerate() {
-                    if let EvalResult::Value(val) = arg {
-                        func_scope.dec_var(params[i].clone(), *val);
+                match scope {
+                    Some(s) => {
+                        let mut func_scope = Scope::from_scope(s.clone());
+                        // bind args and params to funciton scope
+                        for (i, arg) in args.iter().enumerate() {
+                            if let EvalResult::Value(val) = arg {
+                                func_scope.dec_var(params[i].clone().id(), *val);
+                            }
+                        }
+                        return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
                     }
+                    None => Err(InterpError::EvalError(
+                        "Undefined function scope".to_string(),
+                    )),
                 }
-
-                return self.eval(&body.clone(), Rc::new(RefCell::new(func_scope)));
             }
             _ => {
                 return Err(InterpError::EvalError(
@@ -166,14 +193,16 @@ impl Calc {
                         .ok_or(InterpError::Numeric("overflowed".to_string()))?,
                 ))
             }
-            BinaryOp::Assign { id } => {
+            BinaryOp::Assign { id, name } => {
                 let val = self.stack_pop()?;
-                scope.borrow_mut().set_var(id.to_string(), val)?;
-                Ok(val)
+                match scope.borrow_mut().set_var(*id, val) {
+                    Some(val) => Ok(val),
+                    None => return Err(InterpError::UndeclaredVariable(name.to_string())),
+                }
             }
-            BinaryOp::Declare { id } => {
+            BinaryOp::Declare { id, name: _ } => {
                 let val = self.stack_pop()?;
-                scope.borrow_mut().dec_var(id.to_string(), val);
+                scope.borrow_mut().dec_var(*id, val);
                 Ok(val)
             }
             BinaryOp::Equal => Ok(self.eval_eq()?),
@@ -232,10 +261,10 @@ impl Calc {
 
     pub fn eval_input(input: String) -> Result<Option<EvalResult>, InterpError> {
         let scope = Rc::new(RefCell::new(Scope::new()));
-        let calc = &mut Calc::new();
-        let ast = calc.from_str(input.as_str()).unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
-        calc.eval(&bytecode, scope)
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str(input.as_str()).unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
+        yaiwr.eval(&bytecode, scope)
     }
 
     pub fn eval(
@@ -257,24 +286,29 @@ impl Calc {
                 Instruction::Function {
                     block: body,
                     id,
+                    name,
                     params,
-                } => {
-                    if let None = self.fun_store.get(id) {
+                    scope: _,
+                } => match self.fun_store.get(&id) {
+                    Some(..) => {
+                        return Err(InterpError::EvalError(format!(
+                            "Function with the id: '{}' already defined",
+                            name
+                        )))
+                    }
+                    None => {
                         self.fun_store.insert(
-                            id.to_string(),
+                            *id,
                             Instruction::Function {
-                                id: id.to_string(),
+                                id: *id,
+                                name: name.to_string(),
                                 params: params.to_vec(),
                                 block: body.to_vec(),
+                                scope: Some(scope.clone()),
                             },
                         );
-                    } else {
-                        return Err(InterpError::EvalError(format!(
-                            "Function with the id: '{}' already defined!",
-                            id
-                        )));
                     }
-                }
+                },
                 Instruction::FunctionCall { id, args } => {
                     let arg_list = self.eval_function_args(&args, scope.clone())?;
                     let res = self.eval_function_call(&arg_list, id, scope.clone())?;
@@ -287,8 +321,22 @@ impl Calc {
                     println!("{}", self.stack_pop()?);
                 }
                 Instruction::Load { id } => {
-                    let val = scope.borrow().get_var(id.to_string())?;
-                    self.stack_push(val);
+                    let hash = id.id();
+
+                    match self.fun_store.get(&hash) {
+                        Some(..) => {
+                            self.stack_push(StackValue::Function(hash));
+                        }
+                        None => {
+                            let val = scope.borrow().get_var(id.id());
+                            match val {
+                                Some(val) => {
+                                    self.stack_push(val);
+                                }
+                                None => return Err(InterpError::VariableNotFound(id.to_string())),
+                            }
+                        }
+                    }
                 }
                 Instruction::BinaryOp { op } => {
                     let val = self.eval_binary_op(op, scope.clone())?;

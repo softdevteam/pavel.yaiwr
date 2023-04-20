@@ -2,14 +2,14 @@
 mod tests {
     use yaiwr::{
         instruction::{BinaryOp, Instruction, StackValue},
-        Calc,
+        YIWR,
     };
 
     #[test]
     fn println_statement_numeric_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("println(1);").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("println(1);").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first, second] => {
                 assert_eq!(
@@ -26,9 +26,9 @@ mod tests {
 
     #[test]
     fn print_statement_add_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("println (1+1);").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("println (1+1);").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [c1, c2, c3, c4] => {
                 assert_eq!(

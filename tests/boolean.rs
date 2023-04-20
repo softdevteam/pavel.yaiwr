@@ -3,15 +3,15 @@ mod tests {
     use yaiwr::{
         ast::AstNode,
         instruction::{BinaryOp, Instruction, StackValue},
-        Calc,
+        YIWR,
     };
 
     #[test]
     fn bool_literal_true_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("true;").unwrap();
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("true;").unwrap();
         assert_eq!(ast[0], AstNode::Boolean { value: true });
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first] => {
                 assert_eq!(
@@ -27,10 +27,10 @@ mod tests {
 
     #[test]
     fn bool_literal_false_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("true;").unwrap();
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("true;").unwrap();
         assert_eq!(ast[0], AstNode::Boolean { value: true });
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first] => {
                 assert_eq!(
@@ -46,9 +46,9 @@ mod tests {
 
     #[test]
     fn bool_greater_than_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("1 > 2;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("1 > 2;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3] => {
                 assert_eq!(
@@ -75,9 +75,9 @@ mod tests {
     }
     #[test]
     fn bool_less_than_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("1 < 2;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("1 < 2;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3] => {
                 assert_eq!(
@@ -105,9 +105,9 @@ mod tests {
 
     #[test]
     fn bool_less_than_expression_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("(1+2) < 4;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("(1+2) < 4;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3, bc4, bc5] => {
                 assert_eq!(
@@ -142,9 +142,9 @@ mod tests {
 
     #[test]
     fn bool_eq_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("1 == 1;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("1 == 1;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3] => {
                 assert_eq!(
@@ -171,9 +171,9 @@ mod tests {
     }
     #[test]
     fn bool_neq_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("1 != 1;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("1 != 1;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3] => {
                 assert_eq!(
@@ -201,9 +201,9 @@ mod tests {
 
     #[test]
     fn bool_and_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("true && false;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("true && false;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3] => {
                 assert_eq!(
@@ -231,9 +231,9 @@ mod tests {
 
     #[test]
     fn bool_or_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("true || false;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("true || false;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [bc1, bc2, bc3] => {
                 assert_eq!(
