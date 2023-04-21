@@ -53,7 +53,7 @@ impl Display for StackValue {
         let a = match self {
             StackValue::Integer(val) => f.write_str(format!("{}", val).as_str()),
             StackValue::Boolean(val) => f.write_str(format!("{}", val).as_str()),
-            StackValue::Function(_) => f.write_str(format!("Function").as_str()),
+            StackValue::Function(id) => f.write_str(format!("function {}", id).as_str()),
         };
         return a;
     }

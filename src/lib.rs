@@ -239,7 +239,7 @@ impl YIWR {
         let stack_value;
         if op1.is_same_type(&op2) {
             stack_value = StackValue::Boolean(op1 == op2);
-            self.stack.push(stack_value.clone())
+            self.stack_push(stack_value.clone())
         } else {
             return Err(InterpError::EvalError(
                 format!(
@@ -307,7 +307,7 @@ impl YIWR {
                         self.stack_push(x);
                     }
                 }
-                Instruction::Push { value } => self.stack.push(value.clone()),
+                Instruction::Push { value } => self.stack_push(value.clone()),
                 Instruction::PrintLn => {
                     println!("{}", self.stack_pop()?);
                 }
