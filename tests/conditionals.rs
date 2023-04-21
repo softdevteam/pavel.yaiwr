@@ -3,13 +3,13 @@ mod tests {
     use yaiwr::{
         instruction::StackValue,
         instruction::{BinaryOp, Instruction},
-        Calc,
+        YIWR,
     };
 
     #[test]
     fn conditional_no_alternative_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr
             .from_str(
                 "
             if (5 > 1){
@@ -19,7 +19,7 @@ mod tests {
             )
             .unwrap();
 
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first] => {
                 assert_eq!(
@@ -52,8 +52,8 @@ mod tests {
 
     #[test]
     fn conditional_with_alternative_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr
             .from_str(
                 "
             if (5 > 1){
@@ -65,7 +65,7 @@ mod tests {
             )
             .unwrap();
 
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first] => {
                 assert_eq!(

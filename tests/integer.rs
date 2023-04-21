@@ -2,14 +2,14 @@
 mod tests {
     use yaiwr::{
         instruction::{Instruction, StackValue},
-        Calc,
+        YIWR,
     };
 
     #[test]
     fn integer_literal_bc() {
-        let calc = &mut Calc::new();
-        let ast = calc.from_str("1;").unwrap();
-        let bytecode = Calc::ast_to_bytecode(ast);
+        let yaiwr = &mut YIWR::new();
+        let ast = yaiwr.from_str("1;").unwrap();
+        let bytecode = YIWR::ast_to_bytecode(ast);
         match bytecode.as_slice() {
             [first] => {
                 assert_eq!(
