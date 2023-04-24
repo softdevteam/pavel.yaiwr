@@ -99,7 +99,7 @@ AssignmentExpression -> Result<AstNode, ()>:
             },
             _ => Err(())
         }
-    }
+    } 
     ;
 
 AdditiveExpression -> Result<AstNode, ()>:

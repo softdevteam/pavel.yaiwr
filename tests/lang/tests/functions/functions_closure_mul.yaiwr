@@ -1,0 +1,13 @@
+// Run-time:
+//    stdout: 4
+//    stderr:
+
+fun mul (a){
+  fun inner (a){
+    return a * a;
+  }
+  return inner;
+}
+
+let mul_by_2 = mul(2);
+println(mul_by_2(2));

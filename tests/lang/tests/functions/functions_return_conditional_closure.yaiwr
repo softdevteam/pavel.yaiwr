@@ -1,0 +1,23 @@
+// Run-time:
+//    stdout: 1001
+//    stderr:
+
+fun f() {
+  let x = 1;
+  fun g(num) {
+    if (num == 0){
+      return x + 1;
+    } else {
+      x = x * num;
+      return g;
+    }
+  }
+  
+  return g;
+}
+
+let a = f();
+a(10);
+a(10);
+a(10);
+println(a(0));
