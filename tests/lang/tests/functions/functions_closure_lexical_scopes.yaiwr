@@ -1,0 +1,15 @@
+// Run-time:
+//    stdout: 1
+//    stderr:
+
+fun f() {
+  let x = 0;
+  fun g() {
+    println(x);
+  }
+  x = 1;
+  return g;
+}
+
+let g_closure = f();
+g_closure();

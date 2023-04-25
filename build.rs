@@ -7,10 +7,10 @@ fn main() {
         .lrpar_config(|ctp| {
             ctp.yacckind(YaccKind::Grmtools)
                 .rust_edition(lrpar::RustEdition::Rust2021)
-                .grammar_in_src_dir("calc.y")
+                .grammar_in_src_dir("yaiwr.y")
                 .unwrap()
         })
-        .lexer_in_src_dir("calc.l")
+        .lexer_in_src_dir("yaiwr.l")
         .unwrap()
         .build()
         .unwrap();

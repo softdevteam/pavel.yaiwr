@@ -1,0 +1,17 @@
+// Run-time:
+//    stdout: 3
+//    stderr:
+
+fun f(f1, f2) {
+  return f1() + f2();
+}
+
+fun get1() {
+  return 1;
+}
+
+fun get2() {
+  return 2;
+}
+
+println(f(get1, get2));

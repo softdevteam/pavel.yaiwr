@@ -1,13 +1,16 @@
 use std::{
+    cell::RefCell,
     fmt::{Display, Error, Formatter},
     mem::discriminant,
+    rc::Rc,
 };
 
-use crate::err::InterpError;
+use crate::{err::InterpError, scope::Scope};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum StackValue {
     Integer(u64),
+    Function(String),
     Boolean(bool),
 }
 
@@ -16,7 +19,7 @@ pub enum JumpInstruction {
     Return,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum EvalResult {
     Value(StackValue),
     Jump(JumpInstruction),
@@ -50,6 +53,7 @@ impl Display for StackValue {
         let a = match self {
             StackValue::Integer(val) => f.write_str(format!("{}", val).as_str()),
             StackValue::Boolean(val) => f.write_str(format!("{}", val).as_str()),
+            StackValue::Function(id) => f.write_str(format!("function {}", id).as_str()),
         };
         return a;
     }
@@ -65,8 +69,8 @@ pub enum BinaryOp {
     NotEqual,
     LogicalAnd,
     LogicalOr,
-    Assign { id: String },
-    Declare { id: String },
+    Assign { name: String },
+    Declare { name: String },
 }
 
 impl Display for BinaryOp {
@@ -102,9 +106,10 @@ pub enum Instruction {
         block: Vec<Instruction>,
     },
     Function {
-        id: String,
+        name: String,
         params: Vec<String>,
         block: Vec<Instruction>,
+        scope: Option<Rc<RefCell<Scope>>>,
     },
     FunctionCall {
         id: String,
@@ -125,11 +130,7 @@ impl Display for Instruction {
             Instruction::PrintLn => f.write_str("PrintLn"),
             Instruction::Load { .. } => f.write_str("Load"),
             Instruction::Return { .. } => f.write_str("Return"),
-            Instruction::Function {
-                id: _,
-                params: _,
-                block: _,
-            } => f.write_str("Function"),
+            Instruction::Function { .. } => f.write_str("Function"),
             Instruction::FunctionCall { .. } => f.write_str("FunctionCall"),
             Instruction::BinaryOp { op } => f.write_str(format!("BinaryOp({})", op).as_str()),
         }

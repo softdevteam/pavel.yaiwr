@@ -226,18 +226,18 @@ fun add (x){
 #### Closures
 
 Example:
-
 ```
-let g_var = 1;
-
-fun f1 (){
-    g_var = 2;
-    let f1_var = 2;
-    fun f2 (){
-        return f1_var;
-    }
-    return f2();
+fun f() {
+  let x = 0;
+  fun g() {
+    x = x + 1;
+    return x;
+  }
+  return g;
 }
+
+let a = f();
+println(a());
 
 ```
 
@@ -297,7 +297,7 @@ fun f() {
 
 [x] Closures
 
-[ ] Rename interpreter from calc to something more meaningful
+[x] Rename interpreter from calc to something more meaningful
 
 [ ] Compile variable names to integers
 
@@ -321,12 +321,12 @@ fun f() {
 ```mermaid
 sequenceDiagram
     Program->>+VM: Evaluate
-    note right of VM: Defined in calc.rs
-    note right of Lexer: Defined in calc.l
+    note right of VM: Defined in yaiwr.rs
+    note right of Lexer: Defined in yaiwr.l
     VM->>+Lexer: Lexical analysis 
     Lexer-->>-VM: Lexemes
     VM->>+Parser: Parse Lexemes
-        note right of Lexer: Defined in calc.y
+        note right of Lexer: Defined in yaiwr.y
     Parser-->>-VM: AST
     VM->>Bytecode: Parse AST to bytecode
     loop foreach AST node
