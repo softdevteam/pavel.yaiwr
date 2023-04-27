@@ -1,0 +1,9 @@
+// Run-time:
+//    stdout:
+//    stderr: Evaluation error: Unexpected number of function arguments. Function 'add' expected 2 but got 0 arguments
+
+
+fun add (a, b){ 
+    return a + b; 
+}
+println(add());

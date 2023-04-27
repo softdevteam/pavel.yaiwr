@@ -1,0 +1,17 @@
+// Run-time:
+//    stdout: 
+//    stderr: Evaluation error: Undefined reference 'ff1'!
+
+
+fun f1(){
+  fun ff1(){
+    return f1();
+  }
+  return ff1;
+}
+
+fun f2(){
+  return ff1;
+}
+
+f2();

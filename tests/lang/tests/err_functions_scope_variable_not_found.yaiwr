@@ -1,6 +1,6 @@
 // Run-time:
 //    stdout:
-//    stderr: Evaluation error: Variable with id '_a' cannot be found!
+//    stderr: Evaluation error: Undefined reference '_a'!
 
 fun f1 (){ 
     let _a = 1;

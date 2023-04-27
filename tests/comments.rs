@@ -2,13 +2,11 @@ mod print;
 
 #[cfg(test)]
 mod tests {
-    use std::{cell::RefCell, rc::Rc};
-
     use yaiwr::{scope::Scope, YIWR};
 
     #[test]
     fn comment_no_evaluation_bc() {
-        let scope = Rc::new(RefCell::new(Scope::new()));
+        let scope = Scope::new();
         let yaiwr = &mut YIWR::new();
 
         let ast = yaiwr.from_str("// let _a = 5;\n").unwrap();

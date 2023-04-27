@@ -36,21 +36,6 @@ pub fn block_to_bytecode(block: Vec<AstNode>) -> Vec<Instruction> {
     return bytecodes.to_vec();
 }
 
-fn function_declaration(
-    id: String,
-    params: Vec<AstNode>,
-    block: Vec<AstNode>,
-    prog: &mut Vec<Instruction>,
-) {
-    let parsed_params = function_ast_params_to_vec(params);
-    prog.push(Instruction::Function {
-        name: id.clone(),
-        block: block_to_bytecode(block),
-        params: parsed_params,
-        scope: None,
-    });
-}
-
 pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
     match ast_node {
         AstNode::Return { block: body } => {
@@ -61,7 +46,11 @@ pub fn to_bytecode(ast_node: AstNode, prog: &mut Vec<Instruction>) {
             });
         }
         AstNode::FunctionCall { id, args } => function_call(id, args, prog),
-        AstNode::Function { id, params, block } => function_declaration(id, params, block, prog),
+        AstNode::Function { id, params, block } => prog.push(Instruction::FunctionDeclaration {
+            name: id,
+            block: block_to_bytecode(block),
+            params: function_ast_params_to_vec(params),
+        }),
         AstNode::Add { lhs, rhs } => {
             to_bytecode(*lhs, prog);
             to_bytecode(*rhs, prog);

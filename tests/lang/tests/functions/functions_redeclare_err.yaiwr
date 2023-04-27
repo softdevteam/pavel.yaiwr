@@ -1,6 +1,6 @@
 // Run-time:
 //    stdout: 
-//    stderr: Evaluation error: Evaluation error: Function with the id: 'f' already defined!
+//    stderr: Evaluation error: Function with the id: 'f' already defined
 
 
 fun f (){ 
