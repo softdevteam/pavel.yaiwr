@@ -6,7 +6,9 @@ pub enum InterpError {
     ParseError(String),
     EmptyStack,
     Numeric(String),
-    VariableNotFound(String),
+    UndefinedReference(String),
+    FunctionDuplicate(String),
+    FunctionArgumentsMissmatch(String, usize, usize),
     ProgramFileNotFound(String),
     UndefinedFunction(String),
     UndeclaredVariable(String),
@@ -27,8 +29,8 @@ impl Display for InterpError {
                 f.write_str(format!("Parse error: {}!", line).as_str())
             }
             InterpError::Numeric(msg) => f.write_str(format!("Numeric error: {}!", msg).as_str()),
-            InterpError::VariableNotFound(id) => {
-                f.write_str(format!("Variable with id '{}' cannot be found!", id).as_str())
+            InterpError::UndefinedReference(id) => {
+                f.write_str(format!("Undefined reference '{}'!", id).as_str())
             }
             InterpError::ProgramFileNotFound(file_name) => {
                 f.write_str(format!("Program file: '{}' cannot be found!", file_name).as_str())
@@ -36,6 +38,16 @@ impl Display for InterpError {
             InterpError::UndeclaredVariable(id) => {
                 f.write_str(format!("Undefined variable '{}'!", id).as_str())
             }
+            InterpError::FunctionDuplicate(id) => {
+                f.write_str(format!("Function with the id: '{}' already defined", id).as_str())
+            }
+            InterpError::FunctionArgumentsMissmatch(id, expected, got) => f.write_str(
+                format!(
+                    "Unexpected number of function arguments. Function '{}' expected {} but got {} arguments",
+                    id, expected, got
+                )
+                .as_str(),
+            ),
         }
     }
 }
@@ -46,11 +58,13 @@ impl Error for InterpError {
             InterpError::EvalError(..) => "EvalError",
             InterpError::UndefinedFunction(..) => "UndefinedFunction",
             InterpError::EmptyStack => "EmptyStack",
-            InterpError::ParseError(_) => "ParseError",
-            InterpError::Numeric(_) => "Numeric",
-            InterpError::VariableNotFound(_) => "VariableNotFound",
-            InterpError::ProgramFileNotFound(_) => "ProgramFileNotFound",
-            InterpError::UndeclaredVariable(_) => "UndeclaredVariable",
+            InterpError::ParseError(..) => "ParseError",
+            InterpError::Numeric(..) => "Numeric",
+            InterpError::UndefinedReference(..) => "VariableNotFound",
+            InterpError::ProgramFileNotFound(..) => "ProgramFileNotFound",
+            InterpError::UndeclaredVariable(..) => "UndeclaredVariable",
+            InterpError::FunctionDuplicate(..) => "FunctionDuplicate",
+            InterpError::FunctionArgumentsMissmatch(..) => "FunctionArgumentsMissmatch",
         }
     }
 }

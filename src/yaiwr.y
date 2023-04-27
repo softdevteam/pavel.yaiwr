@@ -132,7 +132,7 @@ PostfixExpression -> Result<AstNode, ()>:
   | PostfixExpression '(' ArgumentExpressionList ')' { 
         match $1.map_err(|_| ())? {
         AstNode::ID { value: id } => Ok(AstNode::FunctionCall{ id, args: $3.map_err(|_| ())? }),
-        _ => Err(())
+            _ => Err(())
         }
    }
   ;

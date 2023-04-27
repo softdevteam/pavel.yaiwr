@@ -1,0 +1,29 @@
+// Run-time:
+//    stdout: 1
+//      2
+//    stderr:
+
+fun should_it_mutate(flag) {
+  let x = 1;
+  
+  fun mut(){
+    x = x + 1;
+    return x;
+  }
+  
+  fun print(){
+    println(x);
+  }
+
+  if (flag) {
+    return mut;
+  }else{
+    return print;
+  }
+}
+
+let yes = should_it_mutate(true);
+let no = should_it_mutate(false);
+
+no();
+println(yes());

@@ -1,9 +1,7 @@
 use log::debug;
 use std::{
-    cell::RefCell,
     env, fs,
     io::{self, stdout, BufRead, Write},
-    rc::Rc,
 };
 use yaiwr::{err::InterpError, instruction::EvalResult, scope::Scope, YIWR};
 
@@ -11,7 +9,7 @@ fn main() {
     env_logger::init();
     let args: Vec<String> = env::args().collect();
     debug!("cli args {:?}", &args[1..]);
-    let scope = Rc::new(RefCell::new(Scope::new()));
+    let scope = Scope::new();
     let yaiwr = &mut YIWR::new();
     if args.len() > 1 {
         let result;
@@ -32,10 +30,10 @@ fn print_err(err: InterpError) {
     eprintln!("Evaluation error: {}", err)
 }
 
-pub fn run_from_file<'a>(
+pub fn run_from_file(
     file_name: &str,
     yaiwr: &mut YIWR,
-    scope: Rc<RefCell<Scope>>,
+    scope: Scope,
 ) -> Result<Option<EvalResult>, InterpError> {
     let file_path = file_name;
     match fs::read_to_string(file_name) {
@@ -44,7 +42,7 @@ pub fn run_from_file<'a>(
     }
 }
 
-fn repl(yaiwr: &mut YIWR, scope: Rc<RefCell<Scope>>) {
+fn repl(yaiwr: &mut YIWR, scope: Scope) {
     let stdin = io::stdin();
     loop {
         print!("👉 ");
@@ -70,7 +68,7 @@ fn repl(yaiwr: &mut YIWR, scope: Rc<RefCell<Scope>>) {
 fn eval_statement(
     input: &str,
     yaiwr: &mut YIWR,
-    scope: Rc<RefCell<Scope>>,
+    scope: Scope,
 ) -> Result<Option<EvalResult>, InterpError> {
     debug!("Statement: {:#?}", &input);
     let ast = yaiwr.from_str(input);

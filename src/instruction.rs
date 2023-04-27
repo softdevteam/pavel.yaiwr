@@ -1,16 +1,14 @@
 use std::{
-    cell::RefCell,
     fmt::{Display, Error, Formatter},
     mem::discriminant,
-    rc::Rc,
 };
 
-use crate::{err::InterpError, scope::Scope};
+use crate::{err::InterpError, scope::Object};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StackValue {
     Integer(u64),
-    Function(String),
+    Function(String, Box<Object>),
     Boolean(bool),
 }
 
@@ -53,7 +51,7 @@ impl Display for StackValue {
         let a = match self {
             StackValue::Integer(val) => f.write_str(format!("{}", val).as_str()),
             StackValue::Boolean(val) => f.write_str(format!("{}", val).as_str()),
-            StackValue::Function(id) => f.write_str(format!("function {}", id).as_str()),
+            StackValue::Function(id, ..) => f.write_str(format!("function {}", id).as_str()),
         };
         return a;
     }
@@ -105,11 +103,10 @@ pub enum Instruction {
     Return {
         block: Vec<Instruction>,
     },
-    Function {
+    FunctionDeclaration {
         name: String,
         params: Vec<String>,
         block: Vec<Instruction>,
-        scope: Option<Rc<RefCell<Scope>>>,
     },
     FunctionCall {
         id: String,
@@ -126,11 +123,11 @@ impl Display for Instruction {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         match self {
             Instruction::Conditional { .. } => f.write_str("Conditional"),
-            Instruction::Push { value: _ } => f.write_str("Push"),
+            Instruction::Push { .. } => f.write_str("Push"),
             Instruction::PrintLn => f.write_str("PrintLn"),
             Instruction::Load { .. } => f.write_str("Load"),
             Instruction::Return { .. } => f.write_str("Return"),
-            Instruction::Function { .. } => f.write_str("Function"),
+            Instruction::FunctionDeclaration { .. } => f.write_str("FunctionDeclaration"),
             Instruction::FunctionCall { .. } => f.write_str("FunctionCall"),
             Instruction::BinaryOp { op } => f.write_str(format!("BinaryOp({})", op).as_str()),
         }

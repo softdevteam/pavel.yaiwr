@@ -1,0 +1,21 @@
+// Run-time:
+//    stdout: 3
+//       4
+//       5
+//    stderr:
+
+fun f(x) {
+  fun g() {
+    return x+1;
+  }
+  x = x + 1;
+  return g;
+}
+
+let c1 = f(1);
+let c2 = f(2);
+let c3 = f(3);
+
+println(c1());
+println(c2());
+println(c3());
